@@ -1,0 +1,120 @@
+run:
+  timeout: 1m
+
+linters:
+  enable-all: true
+  disable:
+    - varnamelen
+    - wrapcheck
+    - godox
+    - noctx
+    - exhaustivestruct
+    - exhaustruct
+    - contextcheck
+    - ireturn
+    - gomnd
+    - gochecknoglobals
+    - lll
+  fast: false
+
+# Settings for specific linters
+linters-settings:
+  funlen:
+    lines: 250
+    statements: 70
+
+  cyclop:
+    skip-tests: true
+    max-complexity: 25
+    package-average: 0
+
+  wsl:
+    allow-separated-leading-comment: true
+
+issues:
+  exclude-rules:
+    - path: cmd/
+      linters:
+        - gochecknoinits
+        - gomnd
+        - forbidigo
+        - exhaustruct
+        - exhaustivestruct
+        - staticcheck
+        - varnamelen
+        - wsl
+        - nestif
+
+    - path: postgres.go
+      linters:
+        - gci
+
+    - path: auth.go
+      linters:
+        - unused
+    - path: example_test.go
+      linters:
+        - lll
+
+    - path: http/
+      linters:
+        - unparam
+        - nlreturn
+
+    - path: mongo*
+      linters:
+        - govet
+
+    - path: test.go
+      linters:
+        - testpackage
+        - cyclop
+
+    - path: _test\.go
+      linters:
+        - funlen
+        - scopelint
+        - wsl
+        - containedctx
+        - nlreturn
+        - gocognit
+        - goerr113
+        - paralleltest
+        - lll
+        - govet
+        - ifshort
+        - maligned
+        - maintidx
+
+    - path: doc.go
+      linters:
+        - lll
+
+    - path: example_test.go
+      linters:
+        - nosnakecase
+
+    - path: resource.go
+      linters:
+        - wsl
+
+    - text: "O_WRONLY|O_RDWR|O_CREATE|O_TRUNC|O_APPEND"
+      linters:
+        - nosnakecase
+
+    - linters:
+        - lll
+      source: "json:"
+
+    - linters:
+        - gocritic
+        - godot
+        - lll
+        - wsl
+      source: "//////"
+
+    - linters:
+        - gocritic
+        - godot
+        - lll
+      source: "//"

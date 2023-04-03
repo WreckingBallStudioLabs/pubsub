@@ -1,0 +1,10 @@
+version: "3.7"
+services:
+  nats:
+    image: nats:latest
+    container_name: nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - /tmp/nats:/data

@@ -1,0 +1,51 @@
+name: Go
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  # Label of the container job
+  container-job:
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-latest
+    # Docker Hub image that `container-job` executes in
+    container: golang
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      nats:
+        # Docker Hub image
+        image: nats
+
+    steps:
+      # Downloads a copy of the code in your repository before running CI tests
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        
+      - name: Setup Go environment
+        uses: actions/setup-go@v4.0.0
+        with:
+          # The Go version to download (if necessary) and use. Supports semver spec and ranges.
+          go-version: 1.19
+          cache: true
+
+      - name: Setup golangci-lint
+        uses: golangci/golangci-lint-action@v3.1.0
+        with:
+          version: v1.51.2
+          args: --timeout 10m -v -c .golangci.yml
+
+      - name: Test
+        run: |
+          curl -s https://raw.githubusercontent.com/thalesfsp/configurer/main/resources/install.sh | sh
+          make test coverage
+          
+      - name: Integration test
+        run: |
+          curl -s https://raw.githubusercontent.com/thalesfsp/configurer/main/resources/install.sh | sh
+          sleep 10
+          make test-integration coverage

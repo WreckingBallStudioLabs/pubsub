@@ -50,9 +50,7 @@ func TestNew(t *testing.T) {
 			ctx, cancel := context.WithTimeout(tt.args.ctx, shared.DefaultTimeout)
 			defer cancel()
 
-			client, err := New(ctx, Config{
-				Url: host,
-			})
+			client, err := New(ctx, host)
 			assert.NoError(t, err)
 
 			//////

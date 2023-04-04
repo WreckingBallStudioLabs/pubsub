@@ -27,6 +27,7 @@ endif
 
 ci: lint test coverage
 ci-integration: lint test-integration coverage
+ci-integration-local: lint test-integration-local coverage
 
 coverage:
 	@go tool cover -func=coverage.out && echo "Coverage OK"
@@ -47,7 +48,7 @@ ifndef HAS_DOCKER_COMPOSE
 	@echo "Could not find docker-compose, please install it"
 endif
 	@echo "Stopping required infrastructure"
-	@docker-compose -f resources/docker-compose.yml down
+	@docker-compose -f resources/docker-compose.yml down --remove-orphans
 
 doc:
 ifndef HAS_GODOC
@@ -72,8 +73,13 @@ test-integration:
 	@ENVIRONMENT="integration" configurer l d -f integration.env -- go test -timeout 120s -v -race \
 	-cover -coverprofile=coverage.out ./... && echo "Integration test OK"
 
+test-integration-local:
+	@ENVIRONMENT="integration" configurer l d -f integration-local.env -- go test -timeout 120s -v -race \
+	-cover -coverprofile=coverage.out ./... && echo "Integration test OK"
+
 .PHONY: ci \
 	ci-integration \
+	ci-integration-local \
 	coverage \
 	deps \
 	infra-start \
@@ -81,4 +87,5 @@ test-integration:
 	doc \
 	lint \
 	test \
-	test-integration
+	test-integration \
+	test-integration-local

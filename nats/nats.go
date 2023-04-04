@@ -12,21 +12,26 @@ import (
 // Const, vars, and types.
 //////
 
+const Name = "nats"
+
 // Singleton.
 var singleton pubsub.IPubSub
 
-// Config is for the NATS configuration.
-type Config = natsgo.Options
+// Option is for the NATS configuration.
+type Option = natsgo.Option
 
 // NATS pubsub definition.
 type NATS struct {
 	*pubsub.PubSub
 
-	// Config is the NATS configuration.
-	Config *Config `json:"-" validate:"required"`
+	// Options is the NATS configuration.
+	Options []Option `json:"-" validate:"required"`
 
 	// Client is the NATS client.
 	Client *natsgo.Conn
+
+	// URL is the NATS URL.
+	URL string `json:"url" validate:"required"`
 }
 
 //////
@@ -104,23 +109,25 @@ func (c *NATS) GetClient() any {
 //////
 
 // New creates a new NATS pubsub.
-func New(ctx context.Context, cfg Config) (*NATS, error) {
+func New(ctx context.Context, url string, options ...Option) (pubsub.IPubSub, error) {
 	var _ pubsub.IPubSub = (*NATS)(nil)
 
-	natsConn, err := natsgo.Connect(
-		cfg.Url,
-		natsgo.MaxReconnects(cfg.MaxReconnect),
-		natsgo.ReconnectWait(cfg.ReconnectWait),
-		natsgo.Timeout(cfg.Timeout),
-		natsgo.PingInterval(cfg.PingInterval),
-		natsgo.Name(cfg.Name),
-	)
+	p, err := pubsub.New(Name)
+	if err != nil {
+		return nil, err
+	}
+
+	natsConn, err := natsgo.Connect(url, options...)
 	if err != nil {
 		return nil, err
 	}
 
 	client := &NATS{
-		Client: natsConn,
+		PubSub: p,
+
+		Client:  natsConn,
+		Options: options,
+		URL:     url,
 	}
 
 	singleton = client

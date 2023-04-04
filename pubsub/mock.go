@@ -58,6 +58,6 @@ func (m *Mock) GetClient() any {
 }
 
 // GetName returns the storage name.
-func (m *Mock) GetName() any {
+func (m *Mock) GetName() string {
 	return m.MockGetName()
 }

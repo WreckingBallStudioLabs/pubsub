@@ -18,6 +18,9 @@ type IPubSub interface {
 	// Close closes the connection to the Pub Sub broker.
 	Close() error
 
+	// GetName returns the pubsub name.
+	GetName() string
+
 	// GetClient returns the storage client. Use that to interact with the
 	// underlying storage client.
 	GetClient() any

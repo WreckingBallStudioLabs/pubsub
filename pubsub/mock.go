@@ -1,5 +1,7 @@
 package pubsub
 
+import "github.com/thalesfsp/sypl"
+
 //////
 // Creates the a struct which satisfies the storage.IStorage interface.
 //////
@@ -21,6 +23,9 @@ type Mock struct {
 	// GetClient returns the storage client. Use that to interact with the
 	// underlying storage client.
 	MockGetClient func() any
+
+	// GetLogger returns the logger.
+	MockGetLogger func() sypl.ISypl
 
 	// GetName returns the storage name.
 	MockGetName func() string
@@ -55,6 +60,11 @@ func (m *Mock) Close() error {
 // GetClient mocked call.
 func (m *Mock) GetClient() any {
 	return m.MockGetClient()
+}
+
+// GetLogger returns the logger.
+func (m *Mock) GetLogger() sypl.ISypl {
+	return m.MockGetLogger()
 }
 
 // GetName returns the storage name.

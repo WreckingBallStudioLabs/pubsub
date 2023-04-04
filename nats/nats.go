@@ -6,12 +6,14 @@ import (
 	"github.com/WreckingBallStudioLabs/pubsub/internal/shared"
 	"github.com/WreckingBallStudioLabs/pubsub/pubsub"
 	natsgo "github.com/nats-io/nats.go"
+	"github.com/thalesfsp/customerror"
 )
 
 //////
 // Const, vars, and types.
 //////
 
+// Name is the name of the pubsub.
 const Name = "nats"
 
 // Singleton.
@@ -61,11 +63,15 @@ func (c *NATS) Publish(topic string, message interface{}) error {
 		return err
 	}
 
-	return c.Client.Publish(topic, payload)
+	if err := c.Client.Publish(topic, payload); err != nil {
+		return customerror.NewFailedToError("publish message to "+topic, customerror.WithError(err))
+	}
+
+	return nil
 }
 
 // Subscribe subscribes to a topic and returns a channel for receiving messages.
-func (c *NATS) Subscribe(topic string, queue string, cb func([]byte)) pubsub.Subscription {
+func (c *NATS) Subscribe(topic string, queue string, cb func([]byte)) (pubsub.Subscription, error) {
 	ch := make(chan []byte)
 	sub := pubsub.Subscription{
 		Topic:    topic,
@@ -81,9 +87,11 @@ func (c *NATS) Subscribe(topic string, queue string, cb func([]byte)) pubsub.Sub
 		close(ch)
 
 		sub.Channel = nil
+
+		return sub, customerror.NewFailedToError("subscribe to "+topic, customerror.WithError(err))
 	}
 
-	return sub
+	return sub, nil
 }
 
 // Unsubscribe unsubscribes from a topic.

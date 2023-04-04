@@ -56,49 +56,53 @@ func TestNew(t *testing.T) {
 			//////
 			// Should be able to subscribe to a channel.
 			//////
-			_ = client.Subscribe("test", "test-queue", func(msg []byte) {})
+
+			_, err = client.Subscribe("test", "test-queue", func(msg []byte) {})
 			assert.NoError(t, err)
 
 			//////
 			// Should be able to publish to a channel.
 			//////
-			err = client.Publish("test", []byte("test"))
-			assert.NoError(t, err)
+
+			assert.NoError(t, client.Publish("test", []byte("test")))
 
 			//////
 			// Should be able to publish using an interface.
 			//////
-			err = client.Publish("test", struct {
+
+			assert.NoError(t, client.Publish("test", struct {
 				Test string
 			}{
 				Test: "test",
-			})
-			assert.NoError(t, err)
+			}))
 
 			//////
 			// Should be able to publish using a map.
 			//////
-			err = client.Publish("test", map[string]interface{}{
+
+			assert.NoError(t, client.Publish("test", map[string]interface{}{
 				"test": "test",
-			})
-			assert.NoError(t, err)
+			}))
 
 			//////
 			// Should be able to publish using a byte array.
 			//////
-			err = client.Publish("test", []byte("test"))
-			assert.NoError(t, err)
+
+			assert.NoError(t, client.Publish("test", []byte("test")))
 		})
 	}
 }
 
 func TestInterfaceToBytes_String(t *testing.T) {
 	input := "Hello, world!"
+
 	expected := []byte(`"Hello, world!"`)
+
 	result, err := MessageToPayload(input)
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
+
 	if !bytes.Equal(expected, result) {
 		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
 	}
@@ -106,11 +110,14 @@ func TestInterfaceToBytes_String(t *testing.T) {
 
 func TestInterfaceToBytes_ByteSlice(t *testing.T) {
 	input := []byte{1, 2, 3, 4}
+
 	expected := []byte{34, 92, 117, 48, 48, 48, 49, 92, 117, 48, 48, 48, 50, 92, 117, 48, 48, 48, 51, 92, 117, 48, 48, 48, 52, 34}
+
 	result, err := MessageToPayload(input)
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
+
 	if !bytes.Equal(expected, result) {
 		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
 	}
@@ -122,6 +129,7 @@ func TestInterfaceToBytes_Map(t *testing.T) {
 		"age":  30,
 		"pets": []string{"dog", "cat"},
 	}
+
 	expected := []byte(`{
   "age": 30,
   "name": "John",
@@ -134,6 +142,7 @@ func TestInterfaceToBytes_Map(t *testing.T) {
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
+
 	if !bytes.Equal(expected, result) {
 		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
 	}
@@ -141,15 +150,18 @@ func TestInterfaceToBytes_Map(t *testing.T) {
 
 func TestInterfaceToBytes_Slice(t *testing.T) {
 	input := []interface{}{"a", 1, true}
+
 	expected := []byte(`[
   "a",
   1,
   true
 ]`)
+
 	result, err := MessageToPayload(input)
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
+
 	if !bytes.Equal(expected, result) {
 		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
 	}
@@ -160,15 +172,19 @@ func TestInterfaceToBytes_Struct(t *testing.T) {
 		Name string
 		Age  int
 	}
+
 	input := Person{Name: "John", Age: 30}
+
 	expected := []byte(`{
   "Name": "John",
   "Age": 30
 }`)
+
 	result, err := MessageToPayload(input)
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
+
 	if !bytes.Equal(expected, result) {
 		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
 	}

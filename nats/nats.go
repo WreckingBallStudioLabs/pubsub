@@ -132,7 +132,7 @@ func New(ctx context.Context, cfg Config) (*NATS, error) {
 // Exported functionalities.
 //////
 
-// Get returns a setup MongoDB, or set it up.
+// Get returns a setup NATS, or set it up.
 func Get() pubsub.IPubSub {
 	if singleton == nil {
 		panic("NATS client not initialized")

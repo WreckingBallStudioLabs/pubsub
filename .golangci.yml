@@ -61,10 +61,6 @@ issues:
         - unparam
         - nlreturn
 
-    - path: mongo*
-      linters:
-        - govet
-
     - path: test.go
       linters:
         - testpackage

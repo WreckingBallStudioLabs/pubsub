@@ -6,6 +6,9 @@ import natsgo "github.com/nats-io/nats.go"
 // Const, vars, and types.
 //////
 
+// CallBackFunc is the function to call when a message is received.
+type CallBackFunc func(msg []byte)
+
 // Subscription is a subscription to a topic.
 type Subscription struct {
 	// Topic is the subject to subscribe to.
@@ -15,7 +18,7 @@ type Subscription struct {
 	Queue string
 
 	// Callback is the function to call when a message is received.
-	Callback func(msg []byte)
+	Callback CallBackFunc
 
 	// Channel is the channel to receive messages.
 	Channel <-chan []byte

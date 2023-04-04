@@ -11,6 +11,10 @@ type Mock struct {
 	// Publish sends a message to a topic.
 	MockPublish func(topic string, message any) error
 
+	// PublishAsync sends a message to a topic. In case of error it will just log
+	// it.
+	MockPublishAsync func(topic string, message any)
+
 	// Subscribe subscribes to a topic and returns a channel for receiving messages.
 	MockSubscribe func(topic, queue string, cb func([]byte)) (Subscription, error)
 
@@ -40,6 +44,12 @@ type Mock struct {
 // Publish mocked call.
 func (m *Mock) Publish(topic string, message any) error {
 	return m.MockPublish(topic, message)
+}
+
+// PublishAsync sends a message to a topic. In case of error it will just log
+// it.
+func (m *Mock) PublishAsync(topic string, message any) {
+	m.MockPublishAsync(topic, message)
 }
 
 // Subscribe mocked call.

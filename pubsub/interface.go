@@ -9,7 +9,11 @@ type IPubSub interface {
 	// Publish sends a message to a topic.
 	Publish(topic string, message any) error
 
-	// Subscribe subscribes to a topic and returns a channel for receiving messages.
+	// PublishAsync sends a message to a topic. In case of error it will just
+	// log it.
+	PublishAsync(topic string, message any)
+
+	// Subscribe subscribes to a topic.
 	Subscribe(topic, queue string, cb func([]byte)) (Subscription, error)
 
 	// Unsubscribe unsubscribes from a topic.

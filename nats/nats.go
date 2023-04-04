@@ -64,10 +64,24 @@ func (c *NATS) Publish(topic string, message interface{}) error {
 	}
 
 	if err := c.Client.Publish(topic, payload); err != nil {
-		return customerror.NewFailedToError("publish message to "+topic, customerror.WithError(err))
+		return customerror.NewFailedToError(
+			"publish",
+			customerror.WithError(err),
+			customerror.WithField("topic", topic),
+		)
 	}
 
 	return nil
+}
+
+// PublishAsync sends a message to a topic. In case of error it will just log
+// it.
+func (c *NATS) PublishAsync(topic string, message any) {
+	go func() {
+		if err := c.Publish(topic, message); err != nil {
+			c.GetLogger().Error(err)
+		}
+	}()
 }
 
 // Subscribe subscribes to a topic and returns a channel for receiving messages.
@@ -88,7 +102,11 @@ func (c *NATS) Subscribe(topic string, queue string, cb func([]byte)) (pubsub.Su
 
 		sub.Channel = nil
 
-		return sub, customerror.NewFailedToError("subscribe to "+topic, customerror.WithError(err))
+		return sub, customerror.NewFailedToError(
+			"subscribe",
+			customerror.WithError(err),
+			customerror.WithField("topic", topic),
+		)
 	}
 
 	return sub, nil

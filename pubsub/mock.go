@@ -12,7 +12,7 @@ type Mock struct {
 	MockPublish func(topic string, message any) error
 
 	// Subscribe subscribes to a topic and returns a channel for receiving messages.
-	MockSubscribe func(topic, queue string, cb func([]byte)) Subscription
+	MockSubscribe func(topic, queue string, cb func([]byte)) (Subscription, error)
 
 	// Unsubscribe unsubscribes from a topic.
 	MockUnsubscribe func(topic string) error

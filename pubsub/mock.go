@@ -43,7 +43,7 @@ func (m *Mock) Publish(topic string, message any) error {
 }
 
 // Subscribe mocked call.
-func (m *Mock) Subscribe(topic, queue string, cb func([]byte)) Subscription {
+func (m *Mock) Subscribe(topic, queue string, cb func([]byte)) (Subscription, error) {
 	return m.MockSubscribe(topic, queue, cb)
 }
 

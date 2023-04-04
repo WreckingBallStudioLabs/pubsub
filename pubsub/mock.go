@@ -1,5 +1,9 @@
 package pubsub
 
+//////
+// Creates the a struct which satisfies the storage.IStorage interface.
+//////
+
 // Mock is a struct which satisfies the pubsub.IPubSub interface.
 type Mock struct {
 	// Publish sends a message to a topic.
@@ -17,7 +21,16 @@ type Mock struct {
 	// GetClient returns the storage client. Use that to interact with the
 	// underlying storage client.
 	MockGetClient func() any
+
+	// GetName returns the storage name.
+	MockGetName func() string
 }
+
+//////
+// When the methods are called, it will call the corresponding method in the
+// Mock struct returning the desired value. This implements the IStorage
+// interface.
+//////
 
 // Publish mocked call.
 func (m *Mock) Publish(topic string, message any) error {
@@ -42,4 +55,9 @@ func (m *Mock) Close() error {
 // GetClient mocked call.
 func (m *Mock) GetClient() any {
 	return m.MockGetClient()
+}
+
+// GetName returns the storage name.
+func (m *Mock) GetName() any {
+	return m.MockGetName()
 }

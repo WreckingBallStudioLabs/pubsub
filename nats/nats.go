@@ -3,8 +3,10 @@ package nats
 import (
 	"context"
 
+	"github.com/WreckingBallStudioLabs/pubsub/errorcatalog"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/shared"
 	"github.com/WreckingBallStudioLabs/pubsub/pubsub"
+	"github.com/WreckingBallStudioLabs/pubsub/subscription"
 	natsgo "github.com/nats-io/nats.go"
 	"github.com/thalesfsp/customerror"
 )
@@ -26,7 +28,7 @@ type Option = natsgo.Option
 type NATS struct {
 	*pubsub.PubSub
 
-	// Options is the NATS configuration.
+	// Options are the NATS configuration.
 	Options []Option `json:"-" validate:"required"`
 
 	// Client is the NATS client.
@@ -64,11 +66,13 @@ func (c *NATS) Publish(topic string, message interface{}) error {
 	}
 
 	if err := c.Client.Publish(topic, payload); err != nil {
-		return customerror.NewFailedToError(
-			"publish",
-			customerror.WithError(err),
-			customerror.WithField("topic", topic),
-		)
+		return errorcatalog.
+			Get().
+			MustGet(
+				errorcatalog.PubSubErrNatsPublish,
+				customerror.WithError(err),
+				customerror.WithField("topic", topic),
+			)
 	}
 
 	return nil
@@ -84,10 +88,10 @@ func (c *NATS) PublishAsync(topic string, message any) {
 	}()
 }
 
-// Subscribe subscribes to a topic and returns a channel for receiving messages.
-func (c *NATS) Subscribe(topic string, queue string, cb func([]byte)) (pubsub.Subscription, error) {
+// Subscribe to a topic.
+func (c *NATS) Subscribe(topic string, queue string, cb func([]byte)) (subscription.Subscription, error) {
 	ch := make(chan []byte)
-	sub := pubsub.Subscription{
+	sub := subscription.Subscription{
 		Topic:    topic,
 		Queue:    queue,
 		Callback: cb,
@@ -102,22 +106,24 @@ func (c *NATS) Subscribe(topic string, queue string, cb func([]byte)) (pubsub.Su
 
 		sub.Channel = nil
 
-		return sub, customerror.NewFailedToError(
-			"subscribe",
-			customerror.WithError(err),
-			customerror.WithField("topic", topic),
-		)
+		return sub, errorcatalog.
+			Get().
+			MustGet(
+				errorcatalog.PubSubErrNatsSubscribe,
+				customerror.WithError(err),
+				customerror.WithField("topic", topic),
+			)
 	}
 
 	return sub, nil
 }
 
-// Unsubscribe unsubscribes from a topic.
+// Unsubscribe from a topic.
 func (c *NATS) Unsubscribe(topic string) error {
 	return nil
 }
 
-// Close closes the connection to the Pub Sub broker.
+// Close the connection to the Pub Sub broker.
 func (c *NATS) Close() error {
 	c.Client.Close()
 
@@ -168,7 +174,7 @@ func New(ctx context.Context, url string, options ...Option) (pubsub.IPubSub, er
 // Get returns a setup NATS, or set it up.
 func Get() pubsub.IPubSub {
 	if singleton == nil {
-		panic("NATS client not initialized")
+		panic(errorcatalog.Get().MustGet(errorcatalog.PubSubErrNatsNilMessage))
 	}
 
 	return singleton

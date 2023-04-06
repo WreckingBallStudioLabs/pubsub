@@ -8,6 +8,10 @@ import (
 	"github.com/WreckingBallStudioLabs/pubsub/internal/logging"
 )
 
+//////
+// Exported functionalities.
+//////
+
 // NewInt creates and initializes a new expvar.Int.
 func NewInt(name string) *expvar.Int {
 	prefix := os.Getenv("PUBSUB_METRICS_PREFIX")

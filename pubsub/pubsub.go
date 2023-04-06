@@ -1,20 +1,20 @@
 package pubsub
 
 import (
-	"context"
 	"expvar"
 	"fmt"
-	"net/http"
 
-	"github.com/WreckingBallStudioLabs/pubsub/internal/customapm"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/logging"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/metrics"
-	"github.com/thalesfsp/customerror"
 	"github.com/thalesfsp/status"
 	"github.com/thalesfsp/sypl"
 	"github.com/thalesfsp/sypl/level"
 	"github.com/thalesfsp/validation"
 )
+
+//////
+// Vars, consts, and types.
+//////
 
 // Type is the type of the entity regarding the framework. It is used to for
 // example, to identify the entity in the logs, metrics, and for tracing.
@@ -67,42 +67,6 @@ func (p *PubSub) GetPublishCounter() *expvar.Int {
 // GetSubscribeCounter returns the counterCount metric.
 func (p *PubSub) GetSubscribeCounter() *expvar.Int {
 	return p.counterSubscribe
-}
-
-// FailedToErrorMsgHandler trace and logs an already wrapped (customerror) error.
-func (p *PubSub) FailedToErrorMsgHandler(ctx context.Context, msg string, err error) error {
-	return customapm.TraceError(
-		ctx,
-		p.GetLogger(),
-		customerror.NewFailedToError(msg, customerror.WithError(err)),
-	)
-}
-
-// ErrorHandler trace and logs an already wrapped (customerror) error.
-func (p *PubSub) ErrorHandler(ctx context.Context, operation string, err error) error {
-	return customapm.TraceError(
-		ctx,
-		p.GetLogger(),
-		err,
-	)
-}
-
-// FailedToErrorHandler trace and logs a failedTo error.
-func (p *PubSub) FailedToErrorHandler(ctx context.Context, operation string, err error) error {
-	return customapm.TraceError(
-		ctx,
-		p.GetLogger(),
-		customerror.NewFailedToError(operation, customerror.WithError(err)),
-	)
-}
-
-// NotFoundErrorHandler trace and logs a notFound error.
-func (p *PubSub) NotFoundErrorHandler(ctx context.Context) error {
-	return customapm.TraceError(
-		ctx,
-		p.GetLogger(),
-		customerror.NewHTTPError(http.StatusNotFound),
-	)
 }
 
 //////

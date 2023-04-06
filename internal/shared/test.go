@@ -1,7 +1,3 @@
-//////
-// Shared resources for tests.
-//////
-
 package shared
 
 import (

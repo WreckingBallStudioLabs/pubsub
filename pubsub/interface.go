@@ -1,8 +1,13 @@
 package pubsub
 
 import (
+	"github.com/WreckingBallStudioLabs/pubsub/subscription"
 	"github.com/thalesfsp/sypl"
 )
+
+//////
+// Vars, consts, and types.
+//////
 
 // IPubSub defines a PubSub does.
 type IPubSub interface {
@@ -13,13 +18,13 @@ type IPubSub interface {
 	// log it.
 	PublishAsync(topic string, message any)
 
-	// Subscribe subscribes to a topic.
-	Subscribe(topic, queue string, cb func([]byte)) (Subscription, error)
+	// Subscribe to a topic.
+	Subscribe(topic, queue string, cb func([]byte)) (subscription.Subscription, error)
 
-	// Unsubscribe unsubscribes from a topic.
+	// Unsubscribe from a topic.
 	Unsubscribe(topic string) error
 
-	// Close closes the connection to the Pub Sub broker.
+	// Close the connection to the Pub Sub broker.
 	Close() error
 
 	// GetClient returns the storage client. Use that to interact with the

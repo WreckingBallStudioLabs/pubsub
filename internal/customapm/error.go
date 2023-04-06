@@ -11,6 +11,10 @@ import (
 	"go.elastic.co/apm"
 )
 
+//////
+// Vars, consts, and types.
+//////
+
 // Outcome is the outcome of a span. It can be either success or failure.
 type Outcome string
 
@@ -26,6 +30,10 @@ func (o Outcome) String() string {
 	return string(o)
 }
 
+//////
+// Exported functionalities.
+//////
+
 // TraceError is a helper function to trace an error. It will log the error
 // with the APM fields, and tell APM that it was an error. It will also set
 // the span outcome to failure.
@@ -38,7 +46,7 @@ func TraceError(ctx context.Context, l sypl.ISypl, err error) error {
 		span.Outcome = string(Failure)
 	}
 
-	// Unwrap any nested errors. By default, apm.CaptureError() does not
+	// Unwrap any nested errorcatalog. By default, apm.CaptureError() does not
 	// automatically unwrap nested errors or extract any additional context or
 	// metadata from the error.
 	for {

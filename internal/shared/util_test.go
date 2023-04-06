@@ -1,7 +1,3 @@
-//////
-// Shared utils.
-//////
-
 package shared
 
 import (

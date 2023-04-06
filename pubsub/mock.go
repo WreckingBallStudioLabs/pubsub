@@ -1,6 +1,9 @@
 package pubsub
 
-import "github.com/thalesfsp/sypl"
+import (
+	"github.com/WreckingBallStudioLabs/pubsub/subscription"
+	"github.com/thalesfsp/sypl"
+)
 
 //////
 // Creates the a struct which satisfies the storage.IStorage interface.
@@ -15,13 +18,13 @@ type Mock struct {
 	// it.
 	MockPublishAsync func(topic string, message any)
 
-	// Subscribe subscribes to a topic and returns a channel for receiving messages.
-	MockSubscribe func(topic, queue string, cb func([]byte)) (Subscription, error)
+	// Subscribe to a topic and returns a channel for receiving messages.
+	MockSubscribe func(topic, queue string, cb func([]byte)) (subscription.Subscription, error)
 
-	// Unsubscribe unsubscribes from a topic.
+	// Unsubscribe from a topic.
 	MockUnsubscribe func(topic string) error
 
-	// Close closes the connection to the Pub Sub broker.
+	// Close the connection to the Pub Sub broker.
 	MockClose func() error
 
 	// GetClient returns the storage client. Use that to interact with the
@@ -53,7 +56,7 @@ func (m *Mock) PublishAsync(topic string, message any) {
 }
 
 // Subscribe mocked call.
-func (m *Mock) Subscribe(topic, queue string, cb func([]byte)) (Subscription, error) {
+func (m *Mock) Subscribe(topic, queue string, cb func([]byte)) (subscription.Subscription, error) {
 	return m.MockSubscribe(topic, queue, cb)
 }
 

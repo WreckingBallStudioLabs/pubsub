@@ -7,6 +7,10 @@ import (
 	"go.elastic.co/apm"
 )
 
+//////
+// Exported functionalities.
+//////
+
 // TXFromCtx Creates a new TX if none is found in the context, otherwise reuses
 // the existing one.
 //

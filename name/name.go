@@ -39,7 +39,7 @@ func (n Name) String() string {
 // Validate the name.
 func (n Name) Validate() error {
 	if !nameRegex.MatchString(n.String()) {
-		return errorcatalog.Get().MustGet(errorcatalog.PubSubErrNameName)
+		return errorcatalog.Get().MustGet(errorcatalog.PubSubErrNameName).NewInvalidError()
 	}
 
 	return nil
@@ -76,16 +76,13 @@ func (n Name) ToTopic() Topic {
 	return Topic(n.String())
 }
 
-// ToQueue converts a Name to a Queue, adding the .queue suffix only if it's not
-// already there.
-
 //////
 // Factory.
 //////
 
-// NewFromString creates a new name. It should be in the format of the following
+// New creates a new name. It should be in the format of the following
 // example: "v1.meta.created" or "v1.meta.created.queue".
-func NewFromString(name string) (Name, error) {
+func New(name string) (Name, error) {
 	n := Name(name)
 
 	if err := n.Validate(); err != nil {
@@ -93,4 +90,16 @@ func NewFromString(name string) (Name, error) {
 	}
 
 	return n, nil
+}
+
+// MustNew creates a new name. It should be in the format of the following
+// example: "v1.meta.created" or "v1.meta.created.queue". It panics if the name
+// is invalid.
+func MustNew(name string) Name {
+	n, err := New(name)
+	if err != nil {
+		panic(err)
+	}
+
+	return n
 }

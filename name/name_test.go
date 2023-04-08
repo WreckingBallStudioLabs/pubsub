@@ -66,7 +66,7 @@ func TestNew(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		n, err := NewFromString(tc.name)
+		n, err := New(tc.name)
 
 		if tc.expectedErr && err == nil {
 			t.Errorf("Expected New() with name '%s' to return an error, got nil", tc.name)

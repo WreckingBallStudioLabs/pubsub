@@ -5,10 +5,13 @@ import (
 
 	"github.com/WreckingBallStudioLabs/pubsub/errorcatalog"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/shared"
+	"github.com/WreckingBallStudioLabs/pubsub/message"
 	"github.com/WreckingBallStudioLabs/pubsub/pubsub"
 	"github.com/WreckingBallStudioLabs/pubsub/subscription"
 	natsgo "github.com/nats-io/nats.go"
+	"github.com/thalesfsp/concurrentloop"
 	"github.com/thalesfsp/customerror"
+	"github.com/thalesfsp/validation"
 )
 
 //////
@@ -39,87 +42,132 @@ type NATS struct {
 }
 
 //////
-// Helpers
-//////
-
-// MessageToPayload converts a message to a payload.
-func MessageToPayload(message interface{}) ([]byte, error) {
-	switch value := message.(type) {
-	case []byte:
-		return shared.Marshal(string(value))
-	case string:
-		return shared.Marshal(value)
-	default:
-		return shared.MarshalIndent(value, "", "  ")
-	}
-}
-
-//////
 // Implement the PubSubClient interface.
 //////
 
 // Publish sends a message to a topic.
-func (c *NATS) Publish(topic string, message interface{}) error {
-	payload, err := MessageToPayload(message)
+func (c *NATS) Publish(ctx context.Context, messages ...*message.Message) ([]*message.Message, concurrentloop.Errors) {
+	r, err := concurrentloop.Map(ctx, messages, func(ctx context.Context, message *message.Message) (*message.Message, error) {
+		if err := validation.Validate(message); err != nil {
+			return message, err
+		}
+
+		payload, err := shared.MarshalIndent(message, "", "  ")
+		if err != nil {
+			return message, err
+		}
+
+		if err := c.Client.Publish(message.Topic, payload); err != nil {
+			return message, errorcatalog.
+				Get().
+				MustGet(
+					errorcatalog.PubSubErrNATSPublish,
+					customerror.WithError(err),
+					customerror.WithField("topic", message.Topic),
+					customerror.WithField("id", message.ID),
+				).NewFailedToError()
+		}
+
+		return message, nil
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := c.Client.Publish(topic, payload); err != nil {
-		return errorcatalog.
-			Get().
-			MustGet(
-				errorcatalog.PubSubErrNatsPublish,
-				customerror.WithError(err),
-				customerror.WithField("topic", topic),
-			)
-	}
-
-	return nil
+	return r, nil
 }
 
-// PublishAsync sends a message to a topic. In case of error it will just log
-// it.
-func (c *NATS) PublishAsync(topic string, message any) {
-	go func() {
-		if err := c.Publish(topic, message); err != nil {
-			c.GetLogger().Error(err)
-		}
-	}()
+// MustPublish sends a message to a topic. In case of error it will panic.
+func (c *NATS) MustPublish(ctx context.Context, msgs ...*message.Message) []*message.Message {
+	messages, err := c.Publish(ctx, msgs...)
+	if err != nil {
+		panic(err)
+	}
+
+	return messages
+}
+
+// MustPublishAsync sends a message to a topic asynchronously. In case of error
+// it will panic.
+func (c *NATS) MustPublishAsync(ctx context.Context, messages ...*message.Message) {
+	go c.MustPublish(ctx, messages...)
 }
 
 // Subscribe to a topic.
-func (c *NATS) Subscribe(topic string, queue string, cb func([]byte)) (subscription.Subscription, error) {
-	ch := make(chan []byte)
-	sub := subscription.Subscription{
-		Topic:    topic,
-		Queue:    queue,
-		Callback: cb,
-		Channel:  ch, // Use a receive-only channel for subscriptions
-	}
+func (c *NATS) Subscribe(ctx context.Context, v any, subscriptions ...*subscription.Subscription) ([]*subscription.Subscription, concurrentloop.Errors) {
+	r, err := concurrentloop.Map(ctx, subscriptions, func(ctx context.Context, subscription *subscription.Subscription) (*subscription.Subscription, error) {
+		if err := validation.Validate(subscription); err != nil {
+			return subscription, err
+		}
 
-	_, err := c.Client.QueueSubscribe(topic, queue, func(m *natsgo.Msg) {
-		ch <- m.Data
+		_, err := c.Client.QueueSubscribe(subscription.Topic, subscription.Queue, func(m *natsgo.Msg) {
+			var msg message.Message
+
+			if err := shared.Unmarshal(m.Data, &msg); err != nil {
+				// TODO: Handle this error with APM, metrics, etc.
+				panic(err)
+			}
+
+			jsonData, err := shared.Marshal(msg.Data)
+			if err != nil {
+				panic(err)
+			}
+
+			if err := shared.Unmarshal(jsonData, v); err != nil {
+				panic(err)
+			}
+
+			// Runs the subscription handler function.
+			subscription.Func(&msg)
+
+			// Also sends the data to the channel.
+			subscription.Channel <- &msg
+		})
+		if err != nil {
+			close(subscription.Channel)
+
+			subscription.Channel = nil
+
+			return subscription, errorcatalog.
+				Get().
+				MustGet(
+					errorcatalog.PubSubErrNATSSubscribe,
+					customerror.WithError(err),
+					customerror.WithField("topic", subscription.Topic),
+					customerror.WithField("id", subscription.ID),
+				).NewFailedToError()
+		}
+
+		return subscription, nil
 	})
 	if err != nil {
-		close(ch)
-
-		sub.Channel = nil
-
-		return sub, errorcatalog.
-			Get().
-			MustGet(
-				errorcatalog.PubSubErrNatsSubscribe,
-				customerror.WithError(err),
-				customerror.WithField("topic", topic),
-			)
+		return nil, err
 	}
 
-	return sub, nil
+	return r, nil
+}
+
+// MustSubscribe to a topic. In case of error it will panic.
+func (c *NATS) MustSubscribe(ctx context.Context, v any, subscriptions ...*subscription.Subscription) []*subscription.Subscription {
+	subscriptions, err := c.Subscribe(ctx, v, subscriptions...)
+	if err != nil {
+		panic(err)
+	}
+
+	return subscriptions
+}
+
+// MustSubscribeAsyn to a topic asynchronously. In case of error it will panic.
+func (c *NATS) MustSubscribeAsyn(ctx context.Context, v any, subscriptions ...*subscription.Subscription) {
+	go c.MustSubscribe(ctx, v, subscriptions...)
 }
 
 // Unsubscribe from a topic.
-func (c *NATS) Unsubscribe(topic string) error {
+func (c *NATS) Unsubscribe(ctx context.Context, subscriptions ...*subscription.Subscription) error {
+	c.GetLogger().Warnln(
+		errorcatalog.Get().MustGet(errorcatalog.PubSubErrPubSubNotImpl).NewFailedToError(),
+	)
+
 	return nil
 }
 
@@ -174,7 +222,7 @@ func New(ctx context.Context, url string, options ...Option) (pubsub.IPubSub, er
 // Get returns a setup NATS, or set it up.
 func Get() pubsub.IPubSub {
 	if singleton == nil {
-		panic(errorcatalog.Get().MustGet(errorcatalog.PubSubErrNatsNilMessage))
+		panic(errorcatalog.Get().MustGet(errorcatalog.PubSubErrNATANilMessage).NewFailedToError())
 	}
 
 	return singleton
@@ -183,4 +231,57 @@ func Get() pubsub.IPubSub {
 // Set sets the singleton. Useful for testing.
 func Set(ps pubsub.IPubSub) {
 	singleton = ps
+}
+
+func Subscribe[Result any](ctx context.Context, result Result, subscriptions ...*subscription.Subscription) {
+	r, err := concurrentloop.Map[*subscription.Subscription, Result](ctx, subscriptions, func(ctx context.Context, subscription *subscription.Subscription) (Result, error) {
+		if err := validation.Validate(subscription); err != nil {
+			return result, err
+		}
+
+		_, err := Get().GetClient().(*natsgo.Conn).QueueSubscribe(subscription.Topic, subscription.Queue, func(m *natsgo.Msg) {
+			var msg message.Message
+
+			if err := shared.Unmarshal(m.Data, &msg); err != nil {
+				// TODO: Handle this error with APM, metrics, etc.
+				panic(err)
+			}
+
+			jsonData, err := shared.Marshal(msg.Data)
+			if err != nil {
+				panic(err)
+			}
+
+			if err := shared.Unmarshal(jsonData, result); err != nil {
+				panic(err)
+			}
+
+			// Runs the subscription handler function.
+			subscription.Func(&msg)
+
+			// Also sends the data to the channel.
+			subscription.Channel <- &msg
+		})
+		if err != nil {
+			close(subscription.Channel)
+
+			subscription.Channel = nil
+
+			return subscription, errorcatalog.
+				Get().
+				MustGet(
+					errorcatalog.PubSubErrNATSSubscribe,
+					customerror.WithError(err),
+					customerror.WithField("topic", subscription.Topic),
+					customerror.WithField("id", subscription.ID),
+				).NewFailedToError()
+		}
+
+		return subscription, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }

@@ -1,19 +1,21 @@
 package nats
 
 import (
-	"bytes"
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/WreckingBallStudioLabs/pubsub/internal/shared"
+	"github.com/WreckingBallStudioLabs/pubsub/message"
+	"github.com/WreckingBallStudioLabs/pubsub/subscription"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNew(t *testing.T) {
-	if !shared.IsEnvironment(shared.Integration) {
-		t.Skip("Skipping test. Not in e2e " + shared.Integration + "environment.")
-	}
+	// if !shared.IsEnvironment(shared.Integration) {
+	// 	t.Skip("Skipping test. Not in e2e " + shared.Integration + "environment.")
+	// }
 
 	host := os.Getenv("NATS_HOST")
 
@@ -57,135 +59,46 @@ func TestNew(t *testing.T) {
 			// Should be able to subscribe to a channel.
 			//////
 
-			_, err = client.Subscribe("test", "test-queue", func(msg []byte) {})
-			assert.NoError(t, err)
+			sub := subscription.MustNew("v1.meta.created", "v1.meta.created.queue", func(msg *message.Message) {
+				t.Logf("HERE: %+v", msg.Data)
+			})
+
+			// Print messages from the channel.
+			go func() {
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					case msg := <-sub.Channel:
+						t.Logf("HERE2: %+v", msg.Data)
+					}
+				}
+			}()
+
+			var v *shared.TestDataS
+			subs, err := client.Subscribe(ctx, v, sub)
+			t.Logf("HERE3: %+v", v)
+			assert.Nil(t, err)
 
 			//////
 			// Should be able to publish to a channel.
 			//////
 
-			assert.NoError(t, client.Publish("test", []byte("test")))
+			// _, err = client.Publish(ctx, message.MustNew(subs[0].Topic, "test"))
+			// _, err = client.Publish(ctx, message.MustNew(subs[0].Topic, 1))
+			// _, err = client.Publish(ctx, message.MustNew(subs[0].Topic, 1.1))
+			// _, err = client.Publish(ctx, message.MustNew(subs[0].Topic, true))
+			// _, err = client.Publish(ctx, message.MustNew(subs[0].Topic, false))
+			// _, err = client.Publish(ctx, message.MustNew(subs[0].Topic, []int{1, 2, 3}))
+			// _, err = client.Publish(ctx, message.MustNew(subs[0].Topic, []string{"a", "b", "c"}))
+			// _, err = client.Publish(ctx, message.MustNew(subs[0].Topic, map[int]string{1: "a", 2: "b", 3: "c"}))
+			if subs != nil && len(subs) > 0 {
+				_, err = client.Publish(ctx, message.MustNew(subs[0].Topic, shared.TestData))
 
-			//////
-			// Should be able to publish using an interface.
-			//////
+				assert.Nil(t, err)
+			}
 
-			assert.NoError(t, client.Publish("test", struct {
-				Test string
-			}{
-				Test: "test",
-			}))
-
-			//////
-			// Should be able to publish using a map.
-			//////
-
-			assert.NoError(t, client.Publish("test", map[string]interface{}{
-				"test": "test",
-			}))
-
-			//////
-			// Should be able to publish using a byte array.
-			//////
-
-			assert.NoError(t, client.Publish("test", []byte("test")))
+			time.Sleep(5 * time.Second)
 		})
-	}
-}
-
-func TestInterfaceToBytes_String(t *testing.T) {
-	input := "Hello, world!"
-
-	expected := []byte(`"Hello, world!"`)
-
-	result, err := MessageToPayload(input)
-	if err != nil {
-		t.Error("Unexpected error:", err)
-	}
-
-	if !bytes.Equal(expected, result) {
-		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
-	}
-}
-
-func TestInterfaceToBytes_ByteSlice(t *testing.T) {
-	input := []byte{1, 2, 3, 4}
-
-	expected := []byte{34, 92, 117, 48, 48, 48, 49, 92, 117, 48, 48, 48, 50, 92, 117, 48, 48, 48, 51, 92, 117, 48, 48, 48, 52, 34}
-
-	result, err := MessageToPayload(input)
-	if err != nil {
-		t.Error("Unexpected error:", err)
-	}
-
-	if !bytes.Equal(expected, result) {
-		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
-	}
-}
-
-func TestInterfaceToBytes_Map(t *testing.T) {
-	input := map[string]interface{}{
-		"name": "John",
-		"age":  30,
-		"pets": []string{"dog", "cat"},
-	}
-
-	expected := []byte(`{
-  "age": 30,
-  "name": "John",
-  "pets": [
-    "dog",
-    "cat"
-  ]
-}`)
-	result, err := MessageToPayload(input)
-	if err != nil {
-		t.Error("Unexpected error:", err)
-	}
-
-	if !bytes.Equal(expected, result) {
-		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
-	}
-}
-
-func TestInterfaceToBytes_Slice(t *testing.T) {
-	input := []interface{}{"a", 1, true}
-
-	expected := []byte(`[
-  "a",
-  1,
-  true
-]`)
-
-	result, err := MessageToPayload(input)
-	if err != nil {
-		t.Error("Unexpected error:", err)
-	}
-
-	if !bytes.Equal(expected, result) {
-		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
-	}
-}
-
-func TestInterfaceToBytes_Struct(t *testing.T) {
-	type Person struct {
-		Name string
-		Age  int
-	}
-
-	input := Person{Name: "John", Age: 30}
-
-	expected := []byte(`{
-  "Name": "John",
-  "Age": 30
-}`)
-
-	result, err := MessageToPayload(input)
-	if err != nil {
-		t.Error("Unexpected error:", err)
-	}
-
-	if !bytes.Equal(expected, result) {
-		t.Errorf("Unexpected result: expected %v, got %v", expected, result)
 	}
 }

@@ -61,7 +61,10 @@ func SliceContains(source []string, text string) bool {
 // Unmarshal with custom error.
 func Unmarshal(data []byte, v any) error {
 	if err := json.Unmarshal(data, &v); err != nil {
-		return errorcatalog.Get().MustGet(errorcatalog.PubSubErrSharedUnmarshal, customerror.WithError(err))
+		return errorcatalog.
+			Get().
+			MustGet(errorcatalog.PubSubErrSharedUnmarshal, customerror.WithError(err)).
+			NewFailedToError()
 	}
 
 	return nil
@@ -71,7 +74,10 @@ func Unmarshal(data []byte, v any) error {
 func Marshal(v any) ([]byte, error) {
 	data, err := json.Marshal(&v)
 	if err != nil {
-		return nil, errorcatalog.Get().MustGet(errorcatalog.PubSubErrSharedMarshal, customerror.WithError(err))
+		return nil, errorcatalog.
+			Get().
+			MustGet(errorcatalog.PubSubErrSharedMarshal, customerror.WithError(err)).
+			NewFailedToError()
 	}
 
 	return data, nil
@@ -80,7 +86,10 @@ func Marshal(v any) ([]byte, error) {
 // Decode process stream `r` into `v` and returns an error if any.
 func Decode(r io.Reader, v any) error {
 	if err := json.NewDecoder(r).Decode(v); err != nil {
-		return errorcatalog.Get().MustGet(errorcatalog.PubSubErrSharedDecode, customerror.WithError(err))
+		return errorcatalog.
+			Get().
+			MustGet(errorcatalog.PubSubErrSharedDecode, customerror.WithError(err)).
+			NewFailedToError()
 	}
 
 	return nil
@@ -89,7 +98,10 @@ func Decode(r io.Reader, v any) error {
 // Encode process `v` into stream `w` and returns an error if any.
 func Encode(w io.Writer, v any) error {
 	if err := json.NewEncoder(w).Encode(v); err != nil {
-		return errorcatalog.Get().MustGet(errorcatalog.PubSubErrSharedEncode, customerror.WithError(err))
+		return errorcatalog.
+			Get().
+			MustGet(errorcatalog.PubSubErrSharedEncode, customerror.WithError(err)).
+			NewFailedToError()
 	}
 
 	return nil
@@ -99,7 +111,10 @@ func Encode(w io.Writer, v any) error {
 func ReadAll(r io.Reader) ([]byte, error) {
 	b, err := io.ReadAll(r)
 	if err != nil {
-		return nil, errorcatalog.Get().MustGet(errorcatalog.PubSubErrSharedRead, customerror.WithError(err))
+		return nil, errorcatalog.
+			Get().
+			MustGet(errorcatalog.PubSubErrSharedRead, customerror.WithError(err)).
+			NewFailedToError()
 	}
 
 	return b, nil
@@ -124,7 +139,10 @@ func PrintErrorMessages(errors ...error) string {
 func MarshalIndent(v any, prefix, indent string) ([]byte, error) {
 	data, err := json.MarshalIndent(&v, prefix, indent)
 	if err != nil {
-		return nil, errorcatalog.Get().MustGet(errorcatalog.PubSubErrSharedMarshal, customerror.WithError(err))
+		return nil, errorcatalog.
+			Get().
+			MustGet(errorcatalog.PubSubErrSharedMarshal, customerror.WithError(err)).
+			NewFailedToError()
 	}
 
 	return data, nil

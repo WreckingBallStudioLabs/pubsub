@@ -14,7 +14,7 @@ type Mock struct {
 	// Publish sends a message to a topic.
 	MockPublish func(topic string, message any) error
 
-	// PublishAsync sends a message to a topic. In case of error it will just log
+	// MustPublishAsync sends a message to a topic. In case of error it will just log
 	// it.
 	MockPublishAsync func(topic string, message any)
 
@@ -49,9 +49,9 @@ func (m *Mock) Publish(topic string, message any) error {
 	return m.MockPublish(topic, message)
 }
 
-// PublishAsync sends a message to a topic. In case of error it will just log
+// MustPublishAsync sends a message to a topic. In case of error it will just log
 // it.
-func (m *Mock) PublishAsync(topic string, message any) {
+func (m *Mock) MustPublishAsync(topic string, message any) {
 	m.MockPublishAsync(topic, message)
 }
 

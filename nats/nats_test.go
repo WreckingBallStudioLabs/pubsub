@@ -13,9 +13,9 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	// if !shared.IsEnvironment(shared.Integration) {
-	// 	t.Skip("Skipping test. Not in e2e " + shared.Integration + "environment.")
-	// }
+	if !shared.IsEnvironment(shared.Integration) {
+		t.Skip("Skipping test. Not in e2e " + shared.Integration + "environment.")
+	}
 
 	t.Setenv("PUBSUB_METRICS_PREFIX", "test")
 

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/WreckingBallStudioLabs/pubsub/common"
+	"github.com/WreckingBallStudioLabs/pubsub/internal/shared"
 	"github.com/WreckingBallStudioLabs/pubsub/name"
 	"github.com/thalesfsp/configurer/util"
 	"github.com/thalesfsp/status"
@@ -22,6 +23,24 @@ type Message struct {
 
 	// Topic to publish to.
 	Topic string `json:"topic"`
+}
+
+//////
+// Methods.
+//////
+
+// Process the content of the message `b` into `v`.
+func (m *Message) Process(b any, v any) error {
+	jsonData, err := shared.Marshal(b)
+	if err != nil {
+		return err
+	}
+
+	if err := shared.Unmarshal(jsonData, &v); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //////

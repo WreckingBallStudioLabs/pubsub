@@ -15,9 +15,9 @@ import (
 type Map map[string]IPubSub
 
 // PublishMany will make all PubSubs to concurrently publish many messages.
-func (m Map) PublishMany(ctx context.Context, messages ...*message.Message) {
+func (m Map) PublishMany(ctx context.Context, messages []*message.Message, opts ...Func) {
 	for _, pubsub := range m {
-		pubsub.Publish(ctx, messages...)
+		pubsub.Publish(ctx, messages, opts...)
 	}
 }
 
@@ -33,18 +33,18 @@ func (m Map) MustPublishManyAsync(ctx context.Context, messages ...*message.Mess
 
 // SubscribeMany will make all PubSubs to concurrently subscribe to many
 // subscriptions.
-func (m Map) SubscribeMany(ctx context.Context, v any, subscriptions ...*subscription.Subscription) {
+func (m Map) SubscribeMany(ctx context.Context, subscriptions ...*subscription.Subscription) {
 	for _, pubsub := range m {
-		pubsub.Subscribe(ctx, v, subscriptions...)
+		pubsub.Subscribe(ctx, subscriptions...)
 	}
 }
 
 // MustSubscribeManyAsync will make all PubSubs to concurrently subscribe to many
 // subscriptions asynchronously.
-func (m Map) MustSubscribeManyAsync(ctx context.Context, v any, subscriptions ...*subscription.Subscription) {
+func (m Map) MustSubscribeManyAsync(ctx context.Context, subscriptions ...*subscription.Subscription) {
 	go func() {
 		for _, pubsub := range m {
-			pubsub.MustSubscribeAsyn(ctx, v, subscriptions...)
+			pubsub.MustSubscribeAsyn(ctx, subscriptions...)
 		}
 	}()
 }

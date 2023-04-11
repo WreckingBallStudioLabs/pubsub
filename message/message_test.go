@@ -2,9 +2,7 @@ package message
 
 import (
 	"testing"
-	"time"
 
-	"github.com/WreckingBallStudioLabs/pubsub/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/thalesfsp/status"
 )
@@ -23,16 +21,8 @@ func TestNew(t *testing.T) {
 		{
 			name: "Should work",
 			args: args{
-				topic: "test",
-				data:  "test",
-			},
-			want: &Message{
-				Common: common.Common{
-					CreatedAt: time.Now(),
-					Status:    status.Created,
-				},
-				Topic: "test",
-				Data:  "test",
+				topic: "v1.meta.created",
+				data:  "v1.meta.created.queue",
 			},
 			wantErr: false,
 		},

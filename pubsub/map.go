@@ -5,6 +5,7 @@ import (
 
 	"github.com/WreckingBallStudioLabs/pubsub/message"
 	"github.com/WreckingBallStudioLabs/pubsub/subscription"
+	"github.com/thalesfsp/concurrentloop"
 )
 
 //////
@@ -15,10 +16,23 @@ import (
 type Map map[string]IPubSub
 
 // PublishMany will make all PubSubs to concurrently publish many messages.
-func (m Map) PublishMany(ctx context.Context, messages []*message.Message, opts ...Func) {
+func (m Map) PublishMany(
+	ctx context.Context,
+	messages []*message.Message,
+	opts ...Func,
+) ([]*message.Message, error) {
+	var (
+		msgs []*message.Message
+		errs concurrentloop.Errors
+	)
+
 	for _, pubsub := range m {
-		pubsub.Publish(ctx, messages, opts...)
+		m, e := pubsub.Publish(ctx, messages, opts...)
+		msgs = append(msgs, m...)
+		errs = append(errs, e)
 	}
+
+	return msgs, errs
 }
 
 // MustPublishManyAsync will make all PubSubs to concurrently publish many messages
@@ -33,10 +47,22 @@ func (m Map) MustPublishManyAsync(ctx context.Context, messages ...*message.Mess
 
 // SubscribeMany will make all PubSubs to concurrently subscribe to many
 // subscriptions.
-func (m Map) SubscribeMany(ctx context.Context, subscriptions ...*subscription.Subscription) {
+func (m Map) SubscribeMany(
+	ctx context.Context,
+	subscriptions ...*subscription.Subscription,
+) ([]*subscription.Subscription, concurrentloop.Errors) {
+	var (
+		msgs []*subscription.Subscription
+		errs concurrentloop.Errors
+	)
+
 	for _, pubsub := range m {
-		pubsub.Subscribe(ctx, subscriptions...)
+		m, e := pubsub.Subscribe(ctx, subscriptions...)
+		msgs = append(msgs, m...)
+		errs = append(errs, e)
 	}
+
+	return msgs, errs
 }
 
 // MustSubscribeManyAsync will make all PubSubs to concurrently subscribe to many

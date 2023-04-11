@@ -1,2 +1,2 @@
-// Package message provides everthing related to messages.
+// Package message provides everything related to messages.
 package message

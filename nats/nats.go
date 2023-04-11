@@ -65,7 +65,9 @@ func (c *NATS) Publish(
 			}
 
 			for _, opt := range opts {
-				opt(o)
+				if err := opt(o); err != nil {
+					return message, err
+				}
 			}
 
 			if o.Sync {

@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//nolint:gosimple
 func TestNew(t *testing.T) {
 	if !shared.IsEnvironment(shared.Integration) {
 		t.Skip("Skipping test. Not in e2e " + shared.Integration + "environment.")

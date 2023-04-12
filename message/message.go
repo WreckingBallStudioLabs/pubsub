@@ -6,7 +6,6 @@ import (
 	"github.com/WreckingBallStudioLabs/pubsub/common"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/shared"
 	"github.com/WreckingBallStudioLabs/pubsub/name"
-	"github.com/thalesfsp/configurer/util"
 	"github.com/thalesfsp/status"
 )
 
@@ -61,19 +60,5 @@ func New(topic string, data any) (*Message, error) {
 		Data: data,
 	}
 
-	if err := util.Process(m); err != nil {
-		return nil, err
-	}
-
 	return m, nil
-}
-
-// MustNew creates a new message, panicking if there's an error.
-func MustNew(topic string, data any) *Message {
-	m, err := New(topic, data)
-	if err != nil {
-		panic(err)
-	}
-
-	return m
 }

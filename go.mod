@@ -10,7 +10,6 @@ require (
 	github.com/thalesfsp/concurrentloop v1.1.3
 	github.com/thalesfsp/configurer v1.1.30
 	github.com/thalesfsp/customerror v1.1.3
-	github.com/thalesfsp/dal v0.0.14
 	github.com/thalesfsp/status v1.0.3
 	github.com/thalesfsp/sypl v1.9.14
 	github.com/thalesfsp/validation v0.0.1
@@ -35,6 +34,7 @@ require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/jcchavezs/porto v0.4.0 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
+	github.com/klauspost/compress v1.16.4 // indirect
 	github.com/leodido/go-urn v1.2.3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect

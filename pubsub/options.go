@@ -1,7 +1,7 @@
 package pubsub
 
 import (
-	"github.com/thalesfsp/dal/validation"
+	"github.com/thalesfsp/validation"
 )
 
 //////

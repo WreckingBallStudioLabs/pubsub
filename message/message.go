@@ -60,6 +60,10 @@ func New(topic string, data any) (*Message, error) {
 		Data: data,
 	}
 
+	if err := shared.Process(m); err != nil {
+		return nil, err
+	}
+
 	return m, nil
 }
 

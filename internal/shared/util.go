@@ -9,6 +9,7 @@ import (
 
 	"github.com/WreckingBallStudioLabs/pubsub/errorcatalog"
 	"github.com/google/uuid"
+	"github.com/thalesfsp/configurer/util"
 	"github.com/thalesfsp/customerror"
 )
 
@@ -146,4 +147,24 @@ func MarshalIndent(v any, prefix, indent string) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+// Process will process `v` with the following steps:
+// 1. Set default values.
+// 2. Set environment variables.
+// 3. Set ID.
+func Process(v any) error {
+	if err := util.SetDefault(v); err != nil {
+		return err
+	}
+
+	if err := util.SetEnv(v); err != nil {
+		return err
+	}
+
+	if err := util.SetID(v); err != nil {
+		return err
+	}
+
+	return nil
 }

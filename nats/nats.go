@@ -293,8 +293,8 @@ func (n *NATS) MustSubscribe(ctx context.Context, subscriptions ...*subscription
 	return subscriptions
 }
 
-// MustSubscribeAsyn to a topic asynchronously. In case of error it will panic.
-func (n *NATS) MustSubscribeAsyn(ctx context.Context, subscriptions ...*subscription.Subscription) {
+// MustSubscribeAsync to a topic asynchronously. In case of error it will panic.
+func (n *NATS) MustSubscribeAsync(ctx context.Context, subscriptions ...*subscription.Subscription) {
 	go n.MustSubscribe(ctx, subscriptions...)
 }
 

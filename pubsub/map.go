@@ -71,7 +71,7 @@ func (m Map) SubscribeMany(
 func (m Map) MustSubscribeManyAsync(ctx context.Context, subscriptions ...*subscription.Subscription) {
 	go func() {
 		for _, pubsub := range m {
-			pubsub.MustSubscribeAsyn(ctx, subscriptions...)
+			pubsub.MustSubscribeAsync(ctx, subscriptions...)
 		}
 	}()
 }

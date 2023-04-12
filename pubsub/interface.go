@@ -15,6 +15,8 @@ import (
 //////
 
 // IPubSub defines a PubSub does.
+//
+//nolint:dupl
 type IPubSub interface {
 	// Publish sends a message to a topic.
 	Publish(ctx context.Context, messages []*message.Message, opts ...Func) ([]*message.Message, concurrentloop.Errors)
@@ -32,8 +34,8 @@ type IPubSub interface {
 	// MustSubscribe to a topic. In case of error it will panic.
 	MustSubscribe(ctx context.Context, subscriptions ...*subscription.Subscription) []*subscription.Subscription
 
-	// MustSubscribeAsyn to a topic asynchronously. In case of error it will panic.
-	MustSubscribeAsyn(ctx context.Context, subscriptions ...*subscription.Subscription)
+	// MustSubscribeAsync to a topic asynchronously. In case of error it will panic.
+	MustSubscribeAsync(ctx context.Context, subscriptions ...*subscription.Subscription)
 
 	// Unsubscribe from a topic.
 	Unsubscribe(ctx context.Context, subscriptions ...*subscription.Subscription) error

@@ -59,7 +59,7 @@ func New(topic, queue string, callback Func) (*Subscription, error) {
 	}
 
 	if err := util.Process(s); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return s, nil

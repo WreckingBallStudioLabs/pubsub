@@ -62,7 +62,7 @@ func New(topic string, data any) (*Message, error) {
 	}
 
 	if err := util.Process(m); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return m, nil

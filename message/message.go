@@ -19,7 +19,7 @@ type Message struct {
 	common.Common
 
 	// Data to be published.
-	Data any `json:"data" validate:"required" id:"uuid"`
+	Data any `json:"data"`
 }
 
 //////

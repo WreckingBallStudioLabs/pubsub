@@ -62,3 +62,13 @@ func New(topic string, data any) (*Message, error) {
 
 	return m, nil
 }
+
+// MustNew creates a new message, panicking if there's an error.
+func MustNew(topic string, data any) *Message {
+	m, err := New(topic, data)
+	if err != nil {
+		panic(err)
+	}
+
+	return m
+}

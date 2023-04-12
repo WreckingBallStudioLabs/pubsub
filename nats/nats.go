@@ -2,6 +2,7 @@ package nats
 
 import (
 	"context"
+	"time"
 
 	"github.com/WreckingBallStudioLabs/pubsub/errorcatalog"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/customapm"
@@ -10,6 +11,7 @@ import (
 	"github.com/WreckingBallStudioLabs/pubsub/message"
 	"github.com/WreckingBallStudioLabs/pubsub/pubsub"
 	"github.com/WreckingBallStudioLabs/pubsub/subscription"
+	"github.com/eapache/go-resiliency/retrier"
 	natsgo "github.com/nats-io/nats.go"
 	"github.com/thalesfsp/concurrentloop"
 	"github.com/thalesfsp/customerror"
@@ -334,6 +336,18 @@ func New(ctx context.Context, url string, options ...Option) (pubsub.IPubSub, er
 	natsConn, err := natsgo.Connect(url, options...)
 	if err != nil {
 		return nil, err
+	}
+
+	r := retrier.New(retrier.ExponentialBackoff(3, 10*time.Second), nil)
+
+	if err := r.Run(func() error {
+		if err := natsConn.Flush(); err != nil {
+			return customerror.NewFailedToError("ping", customerror.WithError(err))
+		}
+
+		return nil
+	}); err != nil {
+		return nil, customapm.TraceError(ctx, err, p.GetLogger(), p.GetCounterPingFailed())
 	}
 
 	client := &NATS{

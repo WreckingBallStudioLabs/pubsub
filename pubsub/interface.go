@@ -54,6 +54,9 @@ type IPubSub interface {
 	// GetType returns its type.
 	GetType() string
 
+	// GetCounterPingFailed returns the metric.
+	GetCounterPingFailed() *expvar.Int
+
 	// GetPublishedCounter returns the metric.
 	GetPublishedCounter() *expvar.Int
 

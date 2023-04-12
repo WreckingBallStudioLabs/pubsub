@@ -39,6 +39,7 @@ type PubSub struct {
 
 	// Metrics.
 	counterInstantiationFailed *expvar.Int `json:"-" validate:"required,gte=0"`
+	counterPingFailed          *expvar.Int `json:"-" validate:"required,gte=0"`
 	counterPublished           *expvar.Int `json:"-" validate:"required,gte=0"`
 	counterPublishedFailed     *expvar.Int `json:"-" validate:"required,gte=0"`
 	counterSubscribed          *expvar.Int `json:"-" validate:"required,gte=0"`
@@ -62,6 +63,11 @@ func (p *PubSub) GetName() string {
 // GetType returns its type.
 func (p *PubSub) GetType() string {
 	return Type
+}
+
+// GetCounterPingFailed returns the metric.
+func (p *PubSub) GetCounterPingFailed() *expvar.Int {
+	return p.counterPingFailed
 }
 
 // GetPublishedCounter returns the metric.
@@ -98,6 +104,7 @@ func New(ctx context.Context, name string) (*PubSub, error) {
 		Name:   name,
 
 		counterInstantiationFailed: metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, "instantiation."+status.Failed, DefaultMetricCounterLabel)),
+		counterPingFailed:          metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, "ping."+status.Failed, DefaultMetricCounterLabel)),
 		counterPublished:           metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Published, DefaultMetricCounterLabel)),
 		counterPublishedFailed:     metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Published+"."+status.Failed, DefaultMetricCounterLabel)),
 		counterSubscribed:          metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Subscribed, DefaultMetricCounterLabel)),

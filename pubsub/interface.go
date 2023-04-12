@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"context"
+	"expvar"
 
 	"github.com/WreckingBallStudioLabs/pubsub/message"
 	"github.com/WreckingBallStudioLabs/pubsub/subscription"
@@ -26,7 +27,7 @@ type IPubSub interface {
 	MustPublishAsync(ctx context.Context, messages ...*message.Message)
 
 	// Subscribe to a topic.
-	Subscribe(ctx context.Context, subscriptions ...*subscription.Subscription) ([]*subscription.Subscription, concurrentloop.Errors)
+	Subscribe(ctx context.Context, subscriptions []*subscription.Subscription, opts ...Func) ([]*subscription.Subscription, concurrentloop.Errors)
 
 	// MustSubscribe to a topic. In case of error it will panic.
 	MustSubscribe(ctx context.Context, subscriptions ...*subscription.Subscription) []*subscription.Subscription
@@ -49,4 +50,19 @@ type IPubSub interface {
 
 	// GetName returns the pubsub name.
 	GetName() string
+
+	// GetType returns its type.
+	GetType() string
+
+	// GetPublishedCounter returns the metric.
+	GetPublishedCounter() *expvar.Int
+
+	// GetPublishedFailedCounter returns the metric.
+	GetPublishedFailedCounter() *expvar.Int
+
+	// GetSubscribedCounter returns the metric.
+	GetSubscribedCounter() *expvar.Int
+
+	// GetSubscribedFailedCounter returns the metric.
+	GetSubscribedFailedCounter() *expvar.Int
 }

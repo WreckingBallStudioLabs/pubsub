@@ -35,9 +35,11 @@ type PubSub struct {
 	// Name of the pubsub type.
 	Name string `json:"name" validate:"required,lowercase,gte=1"`
 
-	// Metricp.
-	counterPublish   *expvar.Int `json:"-" validate:"required,gte=0"`
-	counterSubscribe *expvar.Int `json:"-" validate:"required,gte=0"`
+	// Metric.
+	counterPublished        *expvar.Int `json:"-" validate:"required,gte=0"`
+	counterPublishedFailed  *expvar.Int `json:"-" validate:"required,gte=0"`
+	counterSubscribed       *expvar.Int `json:"-" validate:"required,gte=0"`
+	counterSubscribedFailed *expvar.Int `json:"-" validate:"required,gte=0"`
 }
 
 //////
@@ -59,14 +61,24 @@ func (p *PubSub) GetType() string {
 	return Type
 }
 
-// GetPublishCounter returns the counterCount metric.
-func (p *PubSub) GetPublishCounter() *expvar.Int {
-	return p.counterPublish
+// GetPublishedCounter returns the metric.
+func (p *PubSub) GetPublishedCounter() *expvar.Int {
+	return p.counterPublished
 }
 
-// GetSubscribeCounter returns the counterCount metric.
-func (p *PubSub) GetSubscribeCounter() *expvar.Int {
-	return p.counterSubscribe
+// GetPublishedFailedCounter returns the metric.
+func (p *PubSub) GetPublishedFailedCounter() *expvar.Int {
+	return p.counterPublishedFailed
+}
+
+// GetSubscribedCounter returns the metric.
+func (p *PubSub) GetSubscribedCounter() *expvar.Int {
+	return p.counterSubscribed
+}
+
+// GetSubscribedFailedCounter returns the metric.
+func (p *PubSub) GetSubscribedFailedCounter() *expvar.Int {
+	return p.counterSubscribedFailed
 }
 
 //////
@@ -82,18 +94,10 @@ func New(name string) (*PubSub, error) {
 		Logger: logger,
 		Name:   name,
 
-		counterPublish: metrics.NewInt(
-			fmt.Sprintf("%s.%s.%s.%s",
-				Type,
-				name,
-				status.Published,
-				DefaultMetricCounterLabel)),
-		counterSubscribe: metrics.NewInt(
-			fmt.Sprintf("%s.%s.%s.%s",
-				Type,
-				name,
-				status.Subscribed,
-				DefaultMetricCounterLabel)),
+		counterPublished:        metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Published, DefaultMetricCounterLabel)),
+		counterPublishedFailed:  metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Published+"."+status.Failed, DefaultMetricCounterLabel)),
+		counterSubscribed:       metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Subscribed, DefaultMetricCounterLabel)),
+		counterSubscribedFailed: metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Subscribed+"."+status.Failed, DefaultMetricCounterLabel)),
 	}
 
 	// Validate the pubsub.

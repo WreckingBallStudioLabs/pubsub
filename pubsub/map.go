@@ -49,7 +49,8 @@ func (m Map) MustPublishManyAsync(ctx context.Context, messages ...*message.Mess
 // subscriptions.
 func (m Map) SubscribeMany(
 	ctx context.Context,
-	subscriptions ...*subscription.Subscription,
+	subscriptions []*subscription.Subscription,
+	opts ...Func,
 ) ([]*subscription.Subscription, concurrentloop.Errors) {
 	var (
 		msgs []*subscription.Subscription
@@ -57,7 +58,7 @@ func (m Map) SubscribeMany(
 	)
 
 	for _, pubsub := range m {
-		m, e := pubsub.Subscribe(ctx, subscriptions...)
+		m, e := pubsub.Subscribe(ctx, subscriptions, opts...)
 		msgs = append(msgs, m...)
 		errs = append(errs, e)
 	}

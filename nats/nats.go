@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/WreckingBallStudioLabs/pubsub/errorcatalog"
+	"github.com/WreckingBallStudioLabs/pubsub/internal/customapm"
+	"github.com/WreckingBallStudioLabs/pubsub/internal/logging"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/shared"
 	"github.com/WreckingBallStudioLabs/pubsub/message"
 	"github.com/WreckingBallStudioLabs/pubsub/pubsub"
@@ -11,6 +13,10 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 	"github.com/thalesfsp/concurrentloop"
 	"github.com/thalesfsp/customerror"
+	"github.com/thalesfsp/status"
+	"github.com/thalesfsp/sypl"
+	"github.com/thalesfsp/sypl/fields"
+	"github.com/thalesfsp/sypl/level"
 	"github.com/thalesfsp/validation"
 )
 
@@ -46,11 +52,27 @@ type NATS struct {
 //////
 
 // Publish sends a message to a topic.
-func (c *NATS) Publish(
+func (n *NATS) Publish(
 	ctx context.Context,
 	messages []*message.Message,
 	opts ...pubsub.Func,
 ) ([]*message.Message, concurrentloop.Errors) {
+	//////
+	// APM Tracing.
+	//////
+
+	ctx, span := customapm.Trace(
+		ctx,
+		n.GetType(),
+		Name,
+		status.Published.String(),
+	)
+	defer span.End()
+
+	//////
+	// Publish.
+	//////
+
 	r, err := concurrentloop.Map(
 		ctx, messages,
 		func(ctx context.Context, message *message.Message) (*message.Message, error) {
@@ -58,7 +80,10 @@ func (c *NATS) Publish(
 				return message, err
 			}
 
+			//////
 			// Process options.
+			//////
+
 			o, err := pubsub.NewOptions()
 			if err != nil {
 				return message, err
@@ -71,13 +96,18 @@ func (c *NATS) Publish(
 			}
 
 			if o.Sync {
-				return message, errorcatalog.
-					Get().
-					MustGet(errorcatalog.PubSubErrPubSubNotImpl).
-					NewFailedToError(
-						customerror.WithField("topic", message.Topic),
-						customerror.WithField("id", message.ID),
-					)
+				return message, customapm.TraceError(
+					ctx,
+					errorcatalog.
+						Get().
+						MustGet(errorcatalog.PubSubErrPubSubNotImpl).
+						NewFailedToError(
+							customerror.WithField("topic", message.Topic),
+							customerror.WithField("id", message.ID),
+						),
+					n.GetLogger(),
+					n.GetPublishedFailedCounter(),
+				)
 			}
 
 			payload, err := shared.MarshalIndent(message, "", "  ")
@@ -85,7 +115,7 @@ func (c *NATS) Publish(
 				return message, err
 			}
 
-			if err := c.Client.Publish(message.Topic, payload); err != nil {
+			if err := n.Client.Publish(message.Topic, payload); err != nil {
 				return message, errorcatalog.
 					Get().
 					MustGet(
@@ -99,15 +129,34 @@ func (c *NATS) Publish(
 			return message, nil
 		})
 	if err != nil {
+		_ = customapm.TraceError(ctx, err, n.GetLogger(), n.GetPublishedFailedCounter())
+
 		return nil, err
 	}
+
+	//////
+	// Logging
+	//////
+
+	// Correlates the transaction, span and log, and logs it.
+	n.GetLogger().PrintlnWithOptions(
+		level.Debug,
+		status.Published.String(),
+		sypl.WithFields(logging.ToAPM(ctx, make(fields.Fields))),
+	)
+
+	//////
+	// Metrics.
+	//////
+
+	n.GetPublishedCounter().Add(1)
 
 	return r, nil
 }
 
 // MustPublish sends a message to a topic. In case of error it will panic.
-func (c *NATS) MustPublish(ctx context.Context, msgs ...*message.Message) []*message.Message {
-	messages, err := c.Publish(ctx, msgs)
+func (n *NATS) MustPublish(ctx context.Context, msgs ...*message.Message) []*message.Message {
+	messages, err := n.Publish(ctx, msgs)
 	if err != nil {
 		panic(err)
 	}
@@ -117,58 +166,124 @@ func (c *NATS) MustPublish(ctx context.Context, msgs ...*message.Message) []*mes
 
 // MustPublishAsync sends a message to a topic asynchronously. In case of error
 // it will panic.
-func (c *NATS) MustPublishAsync(ctx context.Context, messages ...*message.Message) {
-	go c.MustPublish(ctx, messages...)
+func (n *NATS) MustPublishAsync(ctx context.Context, messages ...*message.Message) {
+	go n.MustPublish(ctx, messages...)
 }
 
 // Subscribe to a topic.
-func (c *NATS) Subscribe(ctx context.Context, subscriptions ...*subscription.Subscription) ([]*subscription.Subscription, concurrentloop.Errors) {
-	r, err := concurrentloop.Map(ctx, subscriptions, func(ctx context.Context, subscription *subscription.Subscription) (*subscription.Subscription, error) {
-		if err := validation.Validate(subscription); err != nil {
-			return subscription, err
-		}
+func (n *NATS) Subscribe(
+	ctx context.Context,
+	subscriptions []*subscription.Subscription,
+	opts ...pubsub.Func,
+) ([]*subscription.Subscription, concurrentloop.Errors) {
+	//////
+	// APM Tracing.
+	//////
 
-		_, err := c.Client.QueueSubscribe(subscription.Topic, subscription.Queue, func(m *natsgo.Msg) {
-			var msg message.Message
+	ctx, span := customapm.Trace(
+		ctx,
+		n.GetType(),
+		Name,
+		status.Subscribed.String(),
+	)
+	defer span.End()
 
-			if err := shared.Unmarshal(m.Data, &msg); err != nil {
-				// TODO: Handle this error with APM, metrics, etc.
-				panic(err)
+	//////
+	// Subscribe.
+	//////
+
+	r, err := concurrentloop.Map(
+		ctx,
+		subscriptions,
+		func(ctx context.Context, subscription *subscription.Subscription) (*subscription.Subscription, error) {
+			if err := validation.Validate(subscription); err != nil {
+				return subscription, err
 			}
 
-			// Runs the subscription handler function.
-			subscription.Func(&msg)
+			//////
+			// Process options.
+			//////
 
-			// Also sends the data to the channel.
-			subscription.Channel <- &msg
+			o, err := pubsub.NewOptions()
+			if err != nil {
+				return subscription, err
+			}
+
+			for _, opt := range opts {
+				if err := opt(o); err != nil {
+					return subscription, err
+				}
+			}
+
+			if o.Sync {
+				return subscription, errorcatalog.
+					Get().
+					MustGet(errorcatalog.PubSubErrPubSubNotImpl).
+					NewFailedToError(
+						customerror.WithField("topic", subscription.Topic),
+						customerror.WithField("id", subscription.ID),
+					)
+			}
+
+			_, err = n.Client.QueueSubscribe(subscription.Topic, subscription.Queue, func(m *natsgo.Msg) {
+				var msg message.Message
+
+				if err := shared.Unmarshal(m.Data, &msg); err != nil {
+					panic(customapm.TraceError(ctx, err, n.GetLogger(), n.GetSubscribedFailedCounter()))
+				}
+
+				// Runs the subscription handler function.
+				subscription.Func(&msg)
+
+				// Also sends the data to the channel.
+				subscription.Channel <- &msg
+			})
+			if err != nil {
+				close(subscription.Channel)
+
+				subscription.Channel = nil
+
+				return subscription, errorcatalog.
+					Get().
+					MustGet(
+						errorcatalog.PubSubErrNATSSubscribe,
+						customerror.WithError(err),
+						customerror.WithField("topic", subscription.Topic),
+						customerror.WithField("id", subscription.ID),
+					).NewFailedToError()
+			}
+
+			return subscription, nil
 		})
-		if err != nil {
-			close(subscription.Channel)
-
-			subscription.Channel = nil
-
-			return subscription, errorcatalog.
-				Get().
-				MustGet(
-					errorcatalog.PubSubErrNATSSubscribe,
-					customerror.WithError(err),
-					customerror.WithField("topic", subscription.Topic),
-					customerror.WithField("id", subscription.ID),
-				).NewFailedToError()
-		}
-
-		return subscription, nil
-	})
 	if err != nil {
+		_ = customapm.TraceError(ctx, err, n.GetLogger(), n.GetSubscribedFailedCounter())
+
 		return nil, err
 	}
+
+	//////
+	// Logging
+	//////
+
+	// Correlates the transaction, span and log, and logs it.
+	n.GetLogger().PrintlnWithOptions(
+		level.Debug,
+		status.Subscribed.String(),
+		sypl.WithFields(logging.ToAPM(ctx, make(fields.Fields))),
+	)
+
+	//////
+	// Metrics.
+	//////
+
+	n.GetSubscribedCounter().Add(1)
 
 	return r, nil
 }
 
 // MustSubscribe to a topic. In case of error it will panic.
-func (c *NATS) MustSubscribe(ctx context.Context, subscriptions ...*subscription.Subscription) []*subscription.Subscription {
-	subscriptions, err := c.Subscribe(ctx, subscriptions...)
+func (n *NATS) MustSubscribe(ctx context.Context, subscriptions ...*subscription.Subscription) []*subscription.Subscription {
+	subscriptions, err := n.Subscribe(ctx, subscriptions)
 	if err != nil {
 		panic(err)
 	}
@@ -177,13 +292,13 @@ func (c *NATS) MustSubscribe(ctx context.Context, subscriptions ...*subscription
 }
 
 // MustSubscribeAsyn to a topic asynchronously. In case of error it will panic.
-func (c *NATS) MustSubscribeAsyn(ctx context.Context, subscriptions ...*subscription.Subscription) {
-	go c.MustSubscribe(ctx, subscriptions...)
+func (n *NATS) MustSubscribeAsyn(ctx context.Context, subscriptions ...*subscription.Subscription) {
+	go n.MustSubscribe(ctx, subscriptions...)
 }
 
 // Unsubscribe from a topic.
-func (c *NATS) Unsubscribe(ctx context.Context, subscriptions ...*subscription.Subscription) error {
-	c.GetLogger().Warnln(
+func (n *NATS) Unsubscribe(ctx context.Context, subscriptions ...*subscription.Subscription) error {
+	n.GetLogger().Warnln(
 		errorcatalog.Get().MustGet(errorcatalog.PubSubErrPubSubNotImpl).NewFailedToError(),
 	)
 
@@ -191,16 +306,16 @@ func (c *NATS) Unsubscribe(ctx context.Context, subscriptions ...*subscription.S
 }
 
 // Close the connection to the Pub Sub broker.
-func (c *NATS) Close() error {
-	c.Client.Close()
+func (n *NATS) Close() error {
+	n.Client.Close()
 
 	return nil
 }
 
 // GetClient returns the storage client. Use that to interact with the
 // underlying storage client.
-func (c *NATS) GetClient() any {
-	return c.Client
+func (n *NATS) GetClient() any {
+	return n.Client
 }
 
 //////

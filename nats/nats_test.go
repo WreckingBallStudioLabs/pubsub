@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//nolint:gosimple
 func TestNew(t *testing.T) {
 	if !shared.IsEnvironment(shared.Integration) {
 		t.Skip("Skipping test. Not in e2e " + shared.Integration + "environment.")
@@ -109,27 +108,33 @@ func TestNew(t *testing.T) {
 			}()
 
 			// 2. Subscribe to the channel.
-			subs, err := client.Subscribe(ctx, sub)
-			assert.Nil(t, err)
-			assert.NotNil(t, subs)
+			assert.NotPanics(t, func() {
+				client.MustSubscribe(ctx, sub)
+			})
 
 			//////
 			// Should be able to publish to a channel.
 			//////
 
-			if subs != nil && len(subs) > 0 {
+			if sub != nil && sub.Topic != "" {
 				assert.NotPanics(t, func() {
 					// 3. Create a message (`MustNew`) then...
 					//
 					// 4. Publish to the channel.
 					//
 					// Smartly reuse `subs` topic, less typing, less error prone.
-					client.MustPublish(ctx, message.MustNew(subs[0].Topic, shared.TestData))
+					client.MustPublish(ctx, message.MustNew(sub.Topic, shared.TestData))
 				})
 			}
 
 			// Need to wait for the message to be processed.
 			time.Sleep(5 * time.Second)
+
+			// Should check if the metrics are working.
+			assert.Equal(t, int64(1), client.GetPublishedCounter().Value())
+			assert.Equal(t, int64(0), client.GetPublishedFailedCounter().Value())
+			assert.Equal(t, int64(1), client.GetSubscribedCounter().Value())
+			assert.Equal(t, int64(0), client.GetSubscribedFailedCounter().Value())
 		})
 	}
 }

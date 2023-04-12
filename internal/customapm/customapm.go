@@ -110,6 +110,10 @@ func Trace(
 	ctx context.Context,
 	what, nameOf, operation string,
 ) (context.Context, *apm.Span) {
+	//////
+	// APM.
+	//////
+
 	tx := TXFromCtx(ctx, nameOf, what)
 
 	ctx = apm.ContextWithTransaction(ctx, tx)

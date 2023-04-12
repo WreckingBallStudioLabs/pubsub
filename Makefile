@@ -41,7 +41,7 @@ ifndef HAS_DOCKER_COMPOSE
 	@echo "Could not find docker-compose, please install it"
 endif
 	@echo "Starting required infrastructure"
-	@docker-compose -f resources/docker-compose.yml up -d nats
+	@docker-compose -f resources/docker-compose.yml up --remove-orphans -d nats
 
 infra-stop:
 ifndef HAS_DOCKER_COMPOSE

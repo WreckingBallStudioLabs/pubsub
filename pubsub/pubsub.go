@@ -1,9 +1,11 @@
 package pubsub
 
 import (
+	"context"
 	"expvar"
 	"fmt"
 
+	"github.com/WreckingBallStudioLabs/pubsub/internal/customapm"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/logging"
 	"github.com/WreckingBallStudioLabs/pubsub/internal/metrics"
 	"github.com/thalesfsp/status"
@@ -35,11 +37,12 @@ type PubSub struct {
 	// Name of the pubsub type.
 	Name string `json:"name" validate:"required,lowercase,gte=1"`
 
-	// Metric.
-	counterPublished        *expvar.Int `json:"-" validate:"required,gte=0"`
-	counterPublishedFailed  *expvar.Int `json:"-" validate:"required,gte=0"`
-	counterSubscribed       *expvar.Int `json:"-" validate:"required,gte=0"`
-	counterSubscribedFailed *expvar.Int `json:"-" validate:"required,gte=0"`
+	// Metrics.
+	counterInstantiationFailed *expvar.Int `json:"-" validate:"required,gte=0"`
+	counterPublished           *expvar.Int `json:"-" validate:"required,gte=0"`
+	counterPublishedFailed     *expvar.Int `json:"-" validate:"required,gte=0"`
+	counterSubscribed          *expvar.Int `json:"-" validate:"required,gte=0"`
+	counterSubscribedFailed    *expvar.Int `json:"-" validate:"required,gte=0"`
 }
 
 //////
@@ -86,7 +89,7 @@ func (p *PubSub) GetSubscribedFailedCounter() *expvar.Int {
 //////
 
 // New returns a new pubsub.
-func New(name string) (*PubSub, error) {
+func New(ctx context.Context, name string) (*PubSub, error) {
 	// pubsub's individual logger.
 	logger := logging.Get().New(name).SetTags(Type, name)
 
@@ -94,15 +97,16 @@ func New(name string) (*PubSub, error) {
 		Logger: logger,
 		Name:   name,
 
-		counterPublished:        metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Published, DefaultMetricCounterLabel)),
-		counterPublishedFailed:  metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Published+"."+status.Failed, DefaultMetricCounterLabel)),
-		counterSubscribed:       metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Subscribed, DefaultMetricCounterLabel)),
-		counterSubscribedFailed: metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Subscribed+"."+status.Failed, DefaultMetricCounterLabel)),
+		counterInstantiationFailed: metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, "instantiation."+status.Failed, DefaultMetricCounterLabel)),
+		counterPublished:           metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Published, DefaultMetricCounterLabel)),
+		counterPublishedFailed:     metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Published+"."+status.Failed, DefaultMetricCounterLabel)),
+		counterSubscribed:          metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Subscribed, DefaultMetricCounterLabel)),
+		counterSubscribedFailed:    metrics.NewInt(fmt.Sprintf("%s.%s.%s.%s", Type, name, status.Subscribed+"."+status.Failed, DefaultMetricCounterLabel)),
 	}
 
 	// Validate the pubsub.
 	if err := validation.Validate(a); err != nil {
-		return nil, err
+		return nil, customapm.TraceError(ctx, err, logger, a.counterInstantiationFailed)
 	}
 
 	a.GetLogger().PrintlnWithOptions(

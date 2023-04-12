@@ -326,7 +326,7 @@ func (n *NATS) GetClient() any {
 func New(ctx context.Context, url string, options ...Option) (pubsub.IPubSub, error) {
 	var _ pubsub.IPubSub = (*NATS)(nil)
 
-	p, err := pubsub.New(Name)
+	p, err := pubsub.New(ctx, Name)
 	if err != nil {
 		return nil, err
 	}

@@ -27,15 +27,6 @@ type Subscription struct {
 
 	// Channel is the channel to receive messages.
 	Channel chan *message.Message `json:"-"`
-
-	// Queue is the queue to subscribe to, in the form "v1.meta.created.queue".
-	// A "queue" is a way to make sure messages are only delivered to one
-	// subscriber at a time.
-	Queue string `json:"queue" validate:"omitempty,gt=0"`
-
-	// Topic is the subject to subscribe to, in the form "v1.meta.created".
-	// A "topic" is a way to organize messages.
-	Topic string `json:"topic" validate:"required"`
 }
 
 //////
@@ -59,12 +50,12 @@ func New(topic, queue string, callback Func) (*Subscription, error) {
 		Common: common.Common{
 			CreatedAt: time.Now(),
 			Status:    status.Created,
+			Queue:     q.String(),
+			Topic:     t.String(),
 		},
 
 		Func:    callback,
 		Channel: make(chan *message.Message),
-		Queue:   q.String(),
-		Topic:   t.String(),
 	}
 
 	if err := util.Process(s); err != nil {

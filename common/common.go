@@ -28,8 +28,17 @@ type Common struct {
 	// field is empty.
 	ID string `json:"id,omitempty" id:"uuid" form:"id" param:"id" query:"id" db:"id" dbType:"varchar(255)" bson:"_id,omitempty" validate:"omitempty,gt=0"`
 
+	// Queue is the queue to subscribe to, in the form "v1.meta.created.queue".
+	// A "queue" is a way to make sure messages are only delivered to one
+	// subscriber at a time.
+	Queue string `json:"queue" validate:"omitempty,gt=0"`
+
 	// Status is the status of the record.
 	Status status.Status `json:"status,omitempty" form:"status" query:"status" validate:"omitempty,gt=0" default:"active"`
+
+	// Topic is the subject to subscribe to, in the form "v1.meta.created".
+	// A "topic" is a way to organize messages.
+	Topic string `json:"topic" validate:"omitempty,gt=0"`
 
 	// UpdatedAt is the time the record was updated.
 	UpdatedAt time.Time `json:"updatedAt,omitempty" form:"updatedAt" query:"updatedAt"`

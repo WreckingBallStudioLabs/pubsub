@@ -33,11 +33,11 @@ func TestNew(t *testing.T) {
 				Common: common.Common{
 					CreatedAt: time.Now(),
 					Status:    status.Created,
+					Queue:     "v1.meta.created.queue",
+					Topic:     "v1.meta.created",
 				},
 				Func:    func(msg *message.Message) {},
 				Channel: make(chan *message.Message),
-				Queue:   "v1.meta.created.queue",
-				Topic:   "v1.meta.created",
 			},
 		},
 	}

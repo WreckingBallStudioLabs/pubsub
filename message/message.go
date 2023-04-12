@@ -20,9 +20,6 @@ type Message struct {
 
 	// Data to be published.
 	Data any `json:"data" validate:"required" id:"uuid"`
-
-	// Topic to publish to.
-	Topic string `json:"topic"`
 }
 
 //////
@@ -58,10 +55,10 @@ func New(topic string, data any) (*Message, error) {
 		Common: common.Common{
 			CreatedAt: time.Now(),
 			Status:    status.Created,
+			Topic:     t.String(),
 		},
 
-		Data:  data,
-		Topic: t.String(),
+		Data: data,
 	}
 
 	if err := util.Process(m); err != nil {

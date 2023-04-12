@@ -48,7 +48,9 @@ func TraceError(
 	// Metric.
 	//////
 
-	metric.Add(1)
+	if metric != nil {
+		metric.Add(1)
+	}
 
 	//////
 	// APM.
@@ -82,11 +84,13 @@ func TraceError(
 	//////
 
 	// Correlates the transaction, span and log, and logs it.
-	l.PrintlnWithOptions(
-		level.Error,
-		err.Error(),
-		sypl.WithFields(logging.ToAPM(ctx, make(fields.Fields))),
-	)
+	if l != nil {
+		l.PrintlnWithOptions(
+			level.Error,
+			err.Error(),
+			sypl.WithFields(logging.ToAPM(ctx, make(fields.Fields))),
+		)
+	}
 
 	return originalError
 }

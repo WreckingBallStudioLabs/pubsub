@@ -28,11 +28,19 @@ func (m Map) PublishMany(
 
 	for _, pubsub := range m {
 		m, e := pubsub.Publish(ctx, messages, opts...)
+
 		msgs = append(msgs, m...)
-		errs = append(errs, e)
+
+		if e != nil {
+			errs = append(errs, e)
+		}
 	}
 
-	return msgs, errs
+	if errs != nil {
+		return nil, errs
+	}
+
+	return msgs, nil
 }
 
 // MustPublishManyAsync will make all PubSubs to concurrently publish many messages

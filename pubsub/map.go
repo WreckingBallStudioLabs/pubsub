@@ -67,11 +67,19 @@ func (m Map) SubscribeMany(
 
 	for _, pubsub := range m {
 		m, e := pubsub.Subscribe(ctx, subscriptions, opts...)
+
 		msgs = append(msgs, m...)
-		errs = append(errs, e)
+
+		if e != nil {
+			errs = append(errs, e)
+		}
 	}
 
-	return msgs, errs
+	if errs != nil {
+		return nil, errs
+	}
+
+	return msgs, nil
 }
 
 // MustSubscribeManyAsync will make all PubSubs to concurrently subscribe to many

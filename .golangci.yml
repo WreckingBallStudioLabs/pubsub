@@ -16,7 +16,13 @@ linters:
     - gochecknoglobals
     - lll
     - interfacebloat
-  fast: false
+    - depguard
+    - perfsprint
+    - testifylint
+    - err113
+    - mnd
+    - wsl
+  fast: true
 
 # Settings for specific linters
 linters-settings:
@@ -31,6 +37,13 @@ linters-settings:
 
   wsl:
     allow-separated-leading-comment: true
+    allow-trailing-comment: true
+
+  revive:
+    ignore-generated-header: true
+    rules:
+      - name: "unused-parameter"
+        disabled: true
 
 issues:
   exclude-rules:

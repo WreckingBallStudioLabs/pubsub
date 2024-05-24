@@ -20,6 +20,9 @@ jobs:
       nats:
         # Docker Hub image
         image: nats
+      redis:
+        # Docker Hub image
+        image: redis
 
     steps:
       # Downloads a copy of the code in your repository before running CI tests
@@ -36,7 +39,7 @@ jobs:
       - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v3.1.0
         with:
-          version: v1.51.2
+          version: v 1.58.2 
           args: --timeout 10m -v -c .golangci.yml
 
       - name: Test

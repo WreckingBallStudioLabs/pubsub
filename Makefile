@@ -34,7 +34,7 @@ coverage:
 
 deps:
 	@go install golang.org/x/tools/cmd/godoc@latest
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v 1.58.2 
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.58.2 
 
 infra-start:
 ifndef HAS_DOCKER_COMPOSE

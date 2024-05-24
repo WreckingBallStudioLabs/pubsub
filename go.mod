@@ -2,6 +2,8 @@ module github.com/WreckingBallStudioLabs/pubsub
 
 go 1.21
 
+toolchain go1.22
+
 require (
 	github.com/eapache/go-resiliency v1.6.0
 	github.com/google/uuid v1.6.0

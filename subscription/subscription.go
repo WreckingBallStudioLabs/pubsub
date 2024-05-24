@@ -55,7 +55,7 @@ func New(topic, queue string, callback Func) (*Subscription, error) {
 		},
 
 		Func:    callback,
-		Channel: make(chan *message.Message),
+		Channel: make(chan *message.Message, 1),
 	}
 
 	if err := util.Process(s); err != nil {

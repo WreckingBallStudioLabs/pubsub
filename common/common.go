@@ -11,22 +11,22 @@ import (
 // Common contains common fields across all models.
 type Common struct {
 	// CreatedAt is the time the record was created.
-	CreatedAt time.Time `json:"createdAt,omitempty" form:"createdAt" query:"createdAt"`
+	CreatedAt time.Time `form:"createdAt" json:"createdAt,omitempty" query:"createdAt"`
 
 	// CreatedBy is the user who created the record.
-	CreatedBy string `json:"createdBy,omitempty" form:"createdBy" query:"createdBy" validate:"omitempty,gt=0"`
+	CreatedBy string `form:"createdBy" json:"createdBy,omitempty" query:"createdBy" validate:"omitempty,gt=0"`
 
 	// DeleteAt is the time the record was deleted.
-	DeleteAt time.Time `json:"deleteAt,omitempty" form:"deleteAt" query:"deleteAt"`
+	DeleteAt time.Time `form:"deleteAt" json:"deleteAt,omitempty" query:"deleteAt"`
 
 	// DeleteBy is the user who deleted the record.
-	DeleteBy string `json:"deleteBy,omitempty" form:"deleteBy" query:"deleteBy" validate:"omitempty,gt=0"`
+	DeleteBy string `form:"deleteBy" json:"deleteBy,omitempty" query:"deleteBy" validate:"omitempty,gt=0"`
 
 	// ID is the unique identifier for the record.
 	//
 	// NOTE: the `id:"uuid"` tag automatically sets with an UUID ONLY if the
 	// field is empty.
-	ID string `json:"id,omitempty" id:"uuid" form:"id" param:"id" query:"id" db:"id" dbType:"varchar(255)" bson:"_id,omitempty" validate:"omitempty,gt=0"`
+	ID string `bson:"_id,omitempty" db:"id" dbType:"varchar(255)" form:"id" id:"uuid" json:"id,omitempty" param:"id" query:"id" validate:"omitempty,gt=0"`
 
 	// Queue is the queue to subscribe to, in the form "v1.meta.created.queue".
 	// A "queue" is a way to make sure messages are only delivered to one
@@ -34,17 +34,17 @@ type Common struct {
 	Queue string `json:"queue" validate:"omitempty,gt=0"`
 
 	// Status is the status of the record.
-	Status status.Status `json:"status,omitempty" form:"status" query:"status" validate:"omitempty,gt=0" default:"active"`
+	Status status.Status `default:"active" form:"status" json:"status,omitempty" query:"status" validate:"omitempty,gt=0"`
 
 	// Topic is the subject to subscribe to, in the form "v1.meta.created".
 	// A "topic" is a way to organize messages.
 	Topic string `json:"topic" validate:"omitempty,gt=0"`
 
 	// UpdatedAt is the time the record was updated.
-	UpdatedAt time.Time `json:"updatedAt,omitempty" form:"updatedAt" query:"updatedAt"`
+	UpdatedAt time.Time `form:"updatedAt" json:"updatedAt,omitempty" query:"updatedAt"`
 
 	// UpdatedBy is the user who updated the record.
-	UpdatedBy string `json:"updatedBy,omitempty" form:"updatedBy" query:"updatedBy" validate:"omitempty,gt=0"`
+	UpdatedBy string `form:"updatedBy" json:"updatedBy,omitempty" query:"updatedBy" validate:"omitempty,gt=0"`
 }
 
 //////

@@ -17,16 +17,16 @@ var (
 )
 
 const (
-	PubSubErrPubSubNotImpl   = "PUBSUB_ERR_PUBSUB_NOT_IMPL"
 	PubSubErrNameName        = "PUBSUB_ERR_NAME_NAME"
-	PubSubErrNATANilMessage  = "PUBSUB_ERR_NATS_NIL_MESSAGE"
-	PubSubErrNATSPublish     = "PUBSUB_ERR_NATS_PUBLISH"
-	PubSubErrNATSSubscribe   = "PUBSUB_ERR_NATS_SUBSCRIBE"
+	PubSubErrNilClient       = "PUBSUB_ERR_NIL_MESSAGE"
+	PubSubErrPublish         = "PUBSUB_ERR_PUBLISH"
+	PubSubErrPubSubNotImpl   = "PUBSUB_ERR_PUBSUB_NOT_IMPL"
 	PubSubErrSharedDecode    = "PUBSUB_ERR_SHARED_DECODE"
 	PubSubErrSharedEncode    = "PUBSUB_ERR_SHARED_ENCODE"
 	PubSubErrSharedMarshal   = "PUBSUB_ERR_SHARED_MARSHAL"
 	PubSubErrSharedRead      = "PUBSUB_ERR_SHARED_READ"
 	PubSubErrSharedUnmarshal = "PUBSUB_ERR_SHARED_UNMARSHAL"
+	PubSubErrSubscribe       = "PUBSUB_ERR_SUBSCRIBE"
 )
 
 //////
@@ -46,16 +46,16 @@ func Get() *customerror.Catalog {
 		// Add error codes.
 		//////
 
-		catalog.MustSet(PubSubErrPubSubNotImpl, "not implemented")
 		catalog.MustSet(PubSubErrNameName, "name. It should be like `v1.meta.created` or `v1.meta.created.queue`")
-		catalog.MustSet(PubSubErrNATANilMessage, "get client, it's nil. Call `New`")
-		catalog.MustSet(PubSubErrNATSPublish, "publish")
-		catalog.MustSet(PubSubErrNATSSubscribe, "subscribe")
+		catalog.MustSet(PubSubErrNilClient, "get client, it's nil. Call `New`")
+		catalog.MustSet(PubSubErrPublish, "publish")
+		catalog.MustSet(PubSubErrPubSubNotImpl, "not implemented")
 		catalog.MustSet(PubSubErrSharedDecode, "decode")
 		catalog.MustSet(PubSubErrSharedEncode, "encode")
 		catalog.MustSet(PubSubErrSharedMarshal, "marshal")
 		catalog.MustSet(PubSubErrSharedRead, "read")
 		catalog.MustSet(PubSubErrSharedUnmarshal, "unmarshal")
+		catalog.MustSet(PubSubErrSubscribe, "subscribe")
 
 		singleton = catalog
 	})

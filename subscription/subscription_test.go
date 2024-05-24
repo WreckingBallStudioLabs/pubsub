@@ -37,7 +37,7 @@ func TestNew(t *testing.T) {
 					Topic:     "v1.meta.created",
 				},
 				Func:    func(msg *message.Message) {},
-				Channel: make(chan *message.Message),
+				Channel: make(chan *message.Message, 1),
 			},
 		},
 	}

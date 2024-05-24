@@ -42,15 +42,15 @@ const (
 
 // TestDataS is the test data definition.
 type TestDataS struct {
-	Name    string `json:"name,omitempty" query:"name" db:"name" dbType:"varchar(255)"`
-	Version string `json:"version,omitempty" query:"version" db:"version" dbType:"varchar(255)"`
+	Name    string `db:"name"    dbType:"varchar(255)" json:"name,omitempty"    query:"name"`
+	Version string `db:"version" dbType:"varchar(255)" json:"version,omitempty" query:"version"`
 }
 
 // TestDataWithIDS is the test data definition.
 type TestDataWithIDS struct {
-	ID      string `json:"id,omitempty" query:"id" db:"id" dbType:"varchar(255)" bson:"_id"`
-	Name    string `json:"name,omitempty" query:"name" db:"name" dbType:"varchar(255)"`
-	Version string `json:"version,omitempty" query:"version" db:"version" dbType:"varchar(255)"`
+	ID      string `bson:"_id"   db:"id"               dbType:"varchar(255)"    json:"id,omitempty" query:"id"`
+	Name    string `db:"name"    dbType:"varchar(255)" json:"name,omitempty"    query:"name"`
+	Version string `db:"version" dbType:"varchar(255)" json:"version,omitempty" query:"version"`
 }
 
 var (

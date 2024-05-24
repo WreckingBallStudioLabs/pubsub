@@ -14,7 +14,7 @@ type Func func(o *Options) error
 // Options for operations.
 type Options struct {
 	// If the operation is synchronous.
-	Sync bool `json:"sync" default:"false" env:"PUBSUB_SYNC"`
+	Sync bool `default:"false" env:"PUBSUB_SYNC" json:"sync"`
 }
 
 //////

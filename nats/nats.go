@@ -121,7 +121,7 @@ func (n *NATS) Publish(
 				return message, errorcatalog.
 					Get().
 					MustGet(
-						errorcatalog.PubSubErrNATSPublish,
+						errorcatalog.PubSubErrPublish,
 						customerror.WithError(err),
 						customerror.WithField("topic", message.Topic),
 						customerror.WithField("id", message.ID),
@@ -191,7 +191,7 @@ func (n *NATS) Subscribe(
 	defer span.End()
 
 	//////
-	// Subscribe.
+	// Subscribe concurrently.
 	//////
 
 	r, err := concurrentloop.Map(
@@ -227,7 +227,7 @@ func (n *NATS) Subscribe(
 					)
 			}
 
-			_, err = n.Client.QueueSubscribe(subscription.Topic, subscription.Queue, func(m *natsgo.Msg) {
+			if _, err := n.Client.QueueSubscribe(subscription.Topic, subscription.Queue, func(m *natsgo.Msg) {
 				var msg message.Message
 
 				if err := shared.Unmarshal(m.Data, &msg); err != nil {
@@ -239,8 +239,7 @@ func (n *NATS) Subscribe(
 
 				// Also sends the data to the channel.
 				subscription.Channel <- &msg
-			})
-			if err != nil {
+			}); err != nil {
 				close(subscription.Channel)
 
 				subscription.Channel = nil
@@ -248,7 +247,7 @@ func (n *NATS) Subscribe(
 				return subscription, errorcatalog.
 					Get().
 					MustGet(
-						errorcatalog.PubSubErrNATSSubscribe,
+						errorcatalog.PubSubErrSubscribe,
 						customerror.WithError(err),
 						customerror.WithField("topic", subscription.Topic),
 						customerror.WithField("id", subscription.ID),
@@ -370,7 +369,7 @@ func New(ctx context.Context, url string, options ...Option) (pubsub.IPubSub, er
 // Get returns a setup NATS, or set it up.
 func Get() pubsub.IPubSub {
 	if singleton == nil {
-		panic(errorcatalog.Get().MustGet(errorcatalog.PubSubErrNATANilMessage).NewFailedToError())
+		panic(errorcatalog.Get().MustGet(errorcatalog.PubSubErrNilClient).NewFailedToError())
 	}
 
 	return singleton

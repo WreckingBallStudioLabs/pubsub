@@ -17,7 +17,7 @@ func TestNew(t *testing.T) {
 		t.Skip("Skipping test. Not in e2e " + shared.Integration + "environment.")
 	}
 
-	t.Setenv("PUBSUB_METRICS_PREFIX", "test")
+	t.Setenv("PUBSUB_METRICS_PREFIX", "nats_test")
 
 	host := os.Getenv("NATS_HOST")
 

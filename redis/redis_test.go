@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -13,9 +14,13 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	t.Setenv("PUBSUB_METRICS_PREFIX", "test")
+	if !shared.IsEnvironment(shared.Integration) {
+		t.Skip("Skipping test. Not in e2e " + shared.Integration + "environment.")
+	}
 
-	host := "localhost:6379"
+	t.Setenv("PUBSUB_METRICS_PREFIX", "redis_test")
+
+	host := os.Getenv("REDIS_HOST")
 
 	if host == "" {
 		t.Fatal("REDIS_HOST is not set")

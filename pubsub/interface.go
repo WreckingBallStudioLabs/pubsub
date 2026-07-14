@@ -7,7 +7,7 @@ import (
 	"github.com/WreckingBallStudioLabs/pubsub/message"
 	"github.com/WreckingBallStudioLabs/pubsub/subscription"
 	"github.com/thalesfsp/concurrentloop"
-	"github.com/thalesfsp/sypl"
+	"github.com/thalesfsp/sypl/v2"
 )
 
 //////

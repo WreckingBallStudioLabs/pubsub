@@ -1,6 +1,6 @@
 module github.com/WreckingBallStudioLabs/pubsub
 
-go 1.21
+go 1.23
 
 require (
 	github.com/eapache/go-resiliency v1.6.0
@@ -12,7 +12,7 @@ require (
 	github.com/thalesfsp/configurer v1.3.22
 	github.com/thalesfsp/customerror v1.2.1
 	github.com/thalesfsp/status v1.0.17
-	github.com/thalesfsp/sypl v1.9.18
+	github.com/thalesfsp/sypl/v2 v2.0.0
 	github.com/thalesfsp/validation v0.0.3
 	go.elastic.co/apm v1.15.0
 )
@@ -30,7 +30,7 @@ require (
 	github.com/elastic/go-sysinfo v1.14.0 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/fatih/color v1.17.0 // indirect
+	github.com/fatih/color v1.18.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -50,6 +50,7 @@ require (
 	github.com/prometheus/procfs v0.15.0 // indirect
 	github.com/santhosh-tekuri/jsonschema v1.2.4 // indirect
 	github.com/thalesfsp/randomness v0.0.9 // indirect
+	github.com/thalesfsp/sypl v1.9.18 // indirect
 	go.elastic.co/fastjson v1.3.0 // indirect
 	go.opentelemetry.io/otel v1.27.0 // indirect
 	go.opentelemetry.io/otel/metric v1.27.0 // indirect
@@ -59,7 +60,7 @@ require (
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.27.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.21.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

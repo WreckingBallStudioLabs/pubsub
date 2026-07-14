@@ -39,7 +39,8 @@ jobs:
         uses: actions/setup-go@v4.0.0
         with:
           # The Go version to download (if necessary) and use. Supports semver spec and ranges.
-          go-version: 1.21
+          # sypl v2 requires go >= 1.23, so go mod tidy raised the module's go directive to 1.23.
+          go-version: "1.23"
           cache: true
 
       - name: Setup golangci-lint
